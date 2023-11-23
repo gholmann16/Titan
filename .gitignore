@@ -1,0 +1,6 @@
+Triton
+*.o
+*.AppImage
+AppRun
+libgtksourceview-4.so.0
+release/Triton.png

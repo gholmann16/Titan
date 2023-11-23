@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Triton
+Comment=Simple gtk notepad
+Exec=Triton %f
+Icon=Triton
+Terminal=false
+MimeType=text/plain
+Categories=Gtk;Utility;TextEditor;

@@ -1,0 +1,1 @@
+int init_explorer(GtkWidget * sections, struct Editor * editor); 
