@@ -6,4 +6,4 @@ Exec=Triton %f
 Icon=Triton
 Terminal=false
 MimeType=text/plain
-Categories=Gtk;Utility;TextEditor;
+Categories=GTK;Utility;TextEditor;

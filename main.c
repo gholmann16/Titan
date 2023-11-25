@@ -27,6 +27,7 @@ int main(int argc, char * argv[]) {
     // Main view
 
     GtkWidget * tabs = gtk_notebook_new();
+    g_signal_connect(tabs, "switch-page", G_CALLBACK(tab_selected), &editor);
 
     // Current working directory
     char cwd[256];
