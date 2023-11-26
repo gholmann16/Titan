@@ -9,6 +9,7 @@ int main(int argc, char * argv[]) {
 
     struct Editor editor;
     editor.current = NULL;
+    editor.pages = NULL;
 
     gtk_init(NULL, NULL);
 
@@ -17,7 +18,7 @@ int main(int argc, char * argv[]) {
     g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), &editor.current);
 
     GError *error = NULL;
-    GdkPixbuf * icon = gdk_pixbuf_new_from_file("/usr/share/pixmaps/Triton.png", &error);
+    GdkPixbuf * icon = gdk_pixbuf_new_from_file("/usr/share/pixmaps/triton.png", &error);
     if (error != NULL) {
         printf(error->message);
         g_clear_error (&error);
@@ -36,7 +37,7 @@ int main(int argc, char * argv[]) {
 
     // Editor initilization
     editor.tabs = tabs;
-    editor.cwd = cwd;
+    editor.cwd = current;
     editor.len = 0;
     editor.window = GTK_WINDOW(window);
 

@@ -5,8 +5,11 @@
 void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor);
 
 void tab_selected(GtkNotebook * notebook, GtkWidget * page, gint num, struct Editor * editor) {
-    printf("%x\n", editor->pages);
-    
+    for(int x = 0; x < editor->len; x++) {
+        if((editor->pages[x])->view == page) {
+            editor->current = editor->pages[x];
+        }
+    }
 }
 
 void fill_expander(GtkWidget * expander, char * directory, struct Editor * editor) {
@@ -56,22 +59,27 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
     }
 }
 
-char * get_local_path(GtkWidget * row) {
-    while(!GTK_IS_BOX(gtk_widget_get_parent(row))) {
-        row = gtk_widget_get_parent(row);
-    }
-    printf("here");
-}
-
 void newpage(char * filename, struct Editor * editor, char * path) {
     
     struct Document * doc = malloc(sizeof(struct Document));
+    
     doc->name[0] = '\0';
-
     strcpy(doc->name, filename);
 
+    struct Document ** newpages = malloc(sizeof(struct Document *) * (editor->len + 1));
+
+    for (int x = 0; x < editor->len; x++) {
+        newpages[x] = editor->pages[x];
+    }
+
+    newpages[editor->len] = doc;
+
+    free(editor->pages);
+
+    editor->pages = newpages;
+    editor->len = editor->len + 1;
+
     gchar * content_type = g_content_type_guess(filename, NULL, 0, NULL);
-        printf("Guess = %s\n", content_type);
     if(strncmp(content_type, "image", 5) == 0) {
         GtkWidget * image = gtk_image_new_from_file (path);
         gtk_widget_show_all(image);
@@ -115,19 +123,6 @@ void newpage(char * filename, struct Editor * editor, char * path) {
 
     }
 
-    struct Document ** newpages = malloc(sizeof(struct Document *) * (editor->len + 1));
-    printf("%x\n", newpages);
-
-    for (int x = 0; x < editor->len; x++) {
-        newpages[x] = editor->pages[x];
-    }
-
-    newpages[editor->len] = doc;
-
-    free(editor->pages);
-    editor->pages = newpages;
-    editor->len = editor->len + 1;
-
 }
 
 void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
@@ -148,7 +143,6 @@ int init_explorer(GtkWidget * sections, struct Editor * editor) {
     GtkWidget * expander = gtk_expander_new("Code\t\t");
     gtk_box_pack_start(GTK_BOX(explorer), expander, 1, 1, 0);
     gtk_expander_set_expanded(GTK_EXPANDER(expander), TRUE);
-
     fill_expander(expander, editor->cwd, editor);
 
     gtk_box_pack_start(GTK_BOX(sections), explorer, 0, 0, 0);
