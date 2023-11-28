@@ -12,6 +12,39 @@ void tab_selected(GtkNotebook * notebook, GtkWidget * page, gint num, struct Edi
     }
 }
 
+void close_tab(GtkButton * close, struct Editor * editor) {
+    GtkWidget * head = gtk_widget_get_parent(GTK_WIDGET(close));
+    int x;
+    for(x = 0; x < editor->len; x++) {
+        if(gtk_notebook_get_tab_label(GTK_NOTEBOOK(editor->tabs), (editor->pages[x])->view) == head)
+            break;
+    }
+
+    gtk_notebook_remove_page(GTK_NOTEBOOK(editor->tabs), gtk_notebook_page_num(GTK_NOTEBOOK(editor->tabs), (editor->pages[x])->view));
+
+    if (editor->pages[x] == editor->current) {
+        editor->current = NULL;
+    }
+    free(editor->pages[x]);
+    
+    struct Document ** newpages = malloc(sizeof(struct Document *) * (editor->len - 1));
+
+    int z = 0;
+    for (int y = 0; y < editor->len; y++) {
+        if (x != y) {
+            newpages[z] = editor->pages[y];
+            z++;
+        }
+    }
+
+    free(editor->pages);
+
+    editor->pages = newpages;
+    editor->len = editor->len - 1;
+
+
+}
+
 void fill_expander(GtkWidget * expander, char * directory, struct Editor * editor) {
     
     GtkWidget * files = gtk_list_box_new();
@@ -80,48 +113,55 @@ void newpage(char * filename, struct Editor * editor, char * path) {
     editor->len = editor->len + 1;
 
     gchar * content_type = g_content_type_guess(filename, NULL, 0, NULL);
-    if(strncmp(content_type, "image", 5) == 0) {
-        GtkWidget * image = gtk_image_new_from_file (path);
-        gtk_widget_show_all(image);
+    GtkWidget * main;
 
-        gtk_notebook_append_page(GTK_NOTEBOOK(editor->tabs), image, NULL);
-        gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(editor->tabs), image, filename);
-        gtk_notebook_set_current_page(GTK_NOTEBOOK(editor->tabs), gtk_notebook_page_num(GTK_NOTEBOOK(editor->tabs), image));
+    if(strncmp(content_type, "image", 5) == 0) {
+        main = gtk_image_new_from_file (path);
+        doc->view = main;
+        doc->window = editor->window;
     }
     else {
         GtkWidget * text = gtk_source_view_new();
         gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text), GTK_WRAP_WORD);
         gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text), TRUE);
         
-        GtkWidget * view = gtk_scrolled_window_new(NULL, NULL);
-        gtk_container_add(GTK_CONTAINER(view), text);
+        main = gtk_scrolled_window_new(NULL, NULL);
+        gtk_container_add(GTK_CONTAINER(main), text);
         GtkTextBuffer * buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
 
         GtkSourceSearchContext * context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), NULL);
         GtkSourceLanguageManager * manager = gtk_source_language_manager_get_default();
 
         GtkSourceLanguage * language = gtk_source_language_manager_guess_language (manager, filename, content_type);
-        g_free(content_type);
 
         gtk_source_search_context_set_highlight(context, TRUE);
         gtk_source_buffer_set_language(GTK_SOURCE_BUFFER(buffer), language);
         gtk_source_search_settings_set_wrap_around(gtk_source_search_context_get_settings(context), TRUE);
         
         doc->buffer = buffer;
-        doc->view = view;
+        doc->view = main;
         doc->context = context;
         doc->window = editor->window;
 
         // Update main struct
         editor->current = doc;
         open_file(path, &editor->current);
-        gtk_widget_show_all(view);
-
-        gtk_notebook_append_page(GTK_NOTEBOOK(editor->tabs), view, NULL);
-        gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(editor->tabs), view, filename);
-        gtk_notebook_set_current_page(GTK_NOTEBOOK(editor->tabs), gtk_notebook_page_num(GTK_NOTEBOOK(editor->tabs), view));
-
     }
+
+    g_free(content_type);
+    gtk_widget_show_all(main);
+
+    GtkWidget * box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    GtkWidget * label = gtk_label_new(filename);
+    GtkWidget * close = gtk_button_new_from_icon_name("window-close", 2);
+    gtk_button_set_relief(GTK_BUTTON(close), GTK_RELIEF_NONE);
+    g_signal_connect(close, "clicked", G_CALLBACK(close_tab), editor);
+    gtk_widget_show(label);
+    gtk_widget_show(close);
+    gtk_box_pack_start(GTK_BOX(box), label, 0, 0, 0);
+    gtk_box_pack_start(GTK_BOX(box), close, 0, 0, 0);
+    gtk_notebook_append_page(GTK_NOTEBOOK(editor->tabs), main, box);
+    gtk_notebook_set_current_page(GTK_NOTEBOOK(editor->tabs), gtk_notebook_page_num(GTK_NOTEBOOK(editor->tabs), main));
 
 }
 
