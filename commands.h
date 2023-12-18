@@ -14,9 +14,9 @@ void print_command(GtkWidget * self, struct Document ** document);
 
 void print_preview_command(GtkWidget * self, struct Document ** document);
 
-void exit_command(GtkWidget * self, struct Document ** document);
+void exit_command(GtkWidget * self, struct Editor * editor);
 
-gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Document ** document);
+gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Editor * editor);
 
 void undo_command(GtkWidget * self, struct Document ** document);
 

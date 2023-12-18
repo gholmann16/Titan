@@ -2,7 +2,15 @@
 #include "global.h"
 #include "commands.h"
 
-int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** document) {
+int file_menu() {
+
+}
+
+int standard_menu() {
+    
+}
+
+int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** document, struct Editor * editor) {
 
     // File menu
 
@@ -47,7 +55,8 @@ int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** documen
     gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), seperate1);
 
     GtkWidget * exit = gtk_menu_item_new_with_label("Exit");
-    g_signal_connect(exit, "activate", G_CALLBACK(exit_command), document);
+    gtk_widget_add_accelerator(exit, "activate", accel, GDK_KEY_Q, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    g_signal_connect(exit, "activate", G_CALLBACK(exit_command), editor);
     gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), exit);
 
     // Edit menu

@@ -208,16 +208,20 @@ void print_preview_command(GtkWidget * self, struct Document ** document) {
     g_object_unref(compositor);
 }
 
-void exit_command(GtkWidget * self, struct Document ** document) {
+void exit_command(GtkWidget * self, struct Editor * editor) {
 
-    if(*document == NULL) gtk_main_quit();
+    if(editor->current == NULL) {
+        gtk_main_quit();
+        return;
+    }
+    printf("%s\n", editor->current);
 
-    if (gtk_text_buffer_get_modified((*document)->buffer) == FALSE) {
+    if (gtk_text_buffer_get_modified(editor->current->buffer) == FALSE) {
         gtk_main_quit();
         return;
     }
 
-    GtkWidget * close = gtk_dialog_new_with_buttons("Triton", (*document)->window, GTK_DIALOG_MODAL, "No", 0, "Cancel", 1, "Yes", 2, NULL);
+    GtkWidget * close = gtk_dialog_new_with_buttons("Triton", editor->current->window, GTK_DIALOG_MODAL, "No", 0, "Cancel", 1, "Yes", 2, NULL);
     GtkWidget * content = gtk_dialog_get_content_area(GTK_DIALOG(close));
     GtkWidget * message = gtk_label_new("Would you like to save?");
 
@@ -234,14 +238,13 @@ void exit_command(GtkWidget * self, struct Document ** document) {
         case 1:
             return;
         case 2:
-            save_command(GTK_WIDGET(self), document);
+            save_command(GTK_WIDGET(self), &(editor->current));
             break;
     }
 }
 
-gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Document ** document) {
-    if(*document == NULL) gtk_main_quit();
-    exit_command(self, document);
+gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Editor * editor) {
+    exit_command(self, editor);
     return TRUE;
 }
 

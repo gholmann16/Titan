@@ -15,7 +15,7 @@ int main(int argc, char * argv[]) {
 
     GtkWidget * window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_default_size(GTK_WINDOW(window), 840, 620);
-    g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), &editor.current);
+    g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), &editor);
 
     GError *error = NULL;
     GdkPixbuf * icon = gdk_pixbuf_new_from_file("/usr/share/pixmaps/triton.png", &error);
@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
     gtk_window_add_accel_group(GTK_WINDOW(window), accel);
 
     GtkWidget * bar = gtk_menu_bar_new();
-    init_menu(bar, accel, &editor.current);
+    init_menu(bar, accel, &editor.current, &editor);
 
     // Boxes
     GtkWidget * box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
