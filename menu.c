@@ -54,6 +54,11 @@ int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** documen
     GtkWidget * seperate1 = gtk_separator_menu_item_new();
     gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), seperate1);
 
+    GtkWidget * close = gtk_menu_item_new_with_label("Close tab");
+    gtk_widget_add_accelerator(close, "activate", accel, GDK_KEY_W, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    g_signal_connect(close, "activate", G_CALLBACK(close_tab_command), editor);
+    gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), close);
+
     GtkWidget * exit = gtk_menu_item_new_with_label("Exit");
     gtk_widget_add_accelerator(exit, "activate", accel, GDK_KEY_Q, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
     g_signal_connect(exit, "activate", G_CALLBACK(exit_command), editor);

@@ -550,3 +550,33 @@ void about_command(GtkWidget * self, struct Document ** document) {
     gtk_dialog_run(GTK_DIALOG(about_dialog));
     gtk_widget_destroy(about_dialog);
 }
+
+void kill_tab_n(struct Editor * editor, int x) {
+    gtk_notebook_remove_page(GTK_NOTEBOOK(editor->tabs), gtk_notebook_page_num(GTK_NOTEBOOK(editor->tabs), (editor->pages[x])->view));
+
+    if (editor->pages[x] == editor->current) {
+        editor->current = NULL;
+    }
+    free(editor->pages[x]);
+    
+    struct Document ** newpages = malloc(sizeof(struct Document *) * (editor->len - 1));
+
+    int z = 0;
+    for (int y = 0; y < editor->len; y++) {
+        if (x != y) {
+            newpages[z] = editor->pages[y];
+            z++;
+        }
+    }
+
+    free(editor->pages);
+
+    editor->pages = newpages;
+    editor->len = editor->len - 1;
+}
+
+void close_tab_command(GtkWidget * self, struct Editor * editor) {
+    if (editor->current == NULL) return;
+    int x = gtk_notebook_page_num (GTK_NOTEBOOK(editor->tabs), editor->current->view);
+    kill_tab_n(editor, x);
+}
