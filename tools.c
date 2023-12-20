@@ -1,7 +1,12 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
 
-int init_toolbar(GtkWidget * sections) {
+void find_tool(GtkWidget * self, struct Panels * panels) {
+    //gtk_widget_set_visible(panels->searcher);
+    gtk_widget_set_visible(panels->explorer, FALSE);
+}
+
+void init_toolbar(GtkWidget * sections, struct Panels * panels) {
     
     GtkWidget * tools = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
@@ -12,6 +17,7 @@ int init_toolbar(GtkWidget * sections) {
 
     GtkWidget * file_button = gtk_button_new();
     GtkWidget * find_button = gtk_button_new();
+    g_signal_connect(find_button, "released", G_CALLBACK(find_tool), panels);
     GtkWidget * git_button = gtk_button_new();
     GtkWidget * settings_button = gtk_button_new();
 

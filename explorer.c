@@ -95,8 +95,9 @@ void newpage(char * filename, struct Editor * editor, char * path) {
 
     if(strncmp(content_type, "image", 5) == 0) {
         main = gtk_image_new_from_file (path);
-        doc->view = main;
+        doc->scrolled = main;
         doc->window = editor->window;
+        doc->type = Image;
     }
     else {
         GtkWidget * text = gtk_source_view_new();
@@ -157,9 +158,10 @@ void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
 
 }
 
-int init_explorer(GtkWidget * sections, struct Editor * editor) {
+int init_explorer(GtkWidget * sections, struct Editor * editor, struct Panels * panels) {
 
     GtkWidget * explorer = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    panels->explorer = explorer;
 
     GtkWidget * expander = gtk_expander_new("Code\t\t");
     gtk_box_pack_start(GTK_BOX(explorer), expander, 1, 1, 0);

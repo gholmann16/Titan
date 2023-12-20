@@ -1,1 +1,1 @@
-int init_toolbar(GtkWidget * sections);
+void init_toolbar(GtkWidget * sections, struct Panels * panels);

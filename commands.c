@@ -28,10 +28,10 @@ int open_file(char * filename, struct Document ** document) {
     fread(contents, sizeof(char), len, f);
     fclose(f);
 
-    (*document)->ro = FALSE;
+    (*document)->type = Text;
 
     if (g_utf8_validate(contents, len, NULL) == FALSE) {
-        (*document)->ro = TRUE;
+        (*document)->type = Binary;
         gsize read;
         gsize wrote;
 
@@ -120,7 +120,7 @@ int save(struct Document ** document) {
 void save_as_command(GtkWidget * self, struct Document ** document) {
     if(*document == NULL) return;
     
-    if ((*document)->ro == TRUE) {
+    if ((*document)->type) {
         read_only_popup(document);
         return;
     }
@@ -153,7 +153,7 @@ void save_command(GtkWidget * self, struct Document ** document) {
         return;
     }
 
-    if ((*document)->ro == TRUE) {
+    if ((*document)->type) {
         read_only_popup(document);
         return;
     }

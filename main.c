@@ -52,16 +52,18 @@ int main(int argc, char * argv[]) {
     GtkWidget * box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     GtkWidget * sections = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 3);
 
-    // Toolbar
-    init_toolbar(sections);
+    // Tools
+    struct Panels panels;
+    init_toolbar(sections, &panels);
 
-    // Explorer
-    init_explorer(sections, &editor);
+    init_explorer(sections, &editor, &panels);
+    //init_searcher
+    //init_gitter
 
     // Add boxes together
     gtk_box_pack_start(GTK_BOX(box), bar, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), sections, 1, 1, 0);
-    gtk_box_pack_start(GTK_BOX(sections), tabs, 1, 1, 0);
+    gtk_box_pack_end(GTK_BOX(sections), tabs, 1, 1, 0);
 
     // Pack up app and run
     gtk_container_add(GTK_CONTAINER(window), box);

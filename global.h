@@ -7,6 +7,12 @@ struct Editor {
     int len;
 };
 
+enum Filetype {
+    Text,
+    Binary,
+    Image
+};
+
 struct Document {
     char name[256];
     GtkTextBuffer * buffer;
@@ -14,5 +20,11 @@ struct Document {
     GtkWidget * scrolled;
     GtkWidget * view;
     GtkSourceSearchContext * context;
-    int ro;
+    enum Filetype type;
+};
+
+struct Panels {
+    GtkWidget * explorer;
+    GtkWidget * searcher;
+    GtkWidget * gitter;
 };
