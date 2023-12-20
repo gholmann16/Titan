@@ -6,7 +6,7 @@ void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor);
 
 void tab_selected(GtkNotebook * notebook, GtkWidget * page, gint num, struct Editor * editor) {
     for(int x = 0; x < editor->len; x++) {
-        if((editor->pages[x])->view == page) {
+        if((editor->pages[x])->scrolled == page) {
             editor->current = editor->pages[x];
         }
     }
@@ -16,7 +16,7 @@ void close_tab(GtkButton * close, struct Editor * editor) {
     GtkWidget * head = gtk_widget_get_parent(GTK_WIDGET(close));
     int x;
     for(x = 0; x < editor->len; x++) {
-        if(gtk_notebook_get_tab_label(GTK_NOTEBOOK(editor->tabs), (editor->pages[x])->view) == head)
+        if(gtk_notebook_get_tab_label(GTK_NOTEBOOK(editor->tabs), (editor->pages[x])->scrolled) == head)
             break;
     }
 
@@ -100,7 +100,9 @@ void newpage(char * filename, struct Editor * editor, char * path) {
     }
     else {
         GtkWidget * text = gtk_source_view_new();
-        gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text), GTK_WRAP_WORD);
+        gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text), GTK_WRAP_NONE);
+        gtk_source_view_set_insert_spaces_instead_of_tabs(GTK_SOURCE_VIEW(text), TRUE);
+        gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(text), 4);
         gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text), TRUE);
         
         main = gtk_scrolled_window_new(NULL, NULL);
@@ -117,9 +119,10 @@ void newpage(char * filename, struct Editor * editor, char * path) {
         gtk_source_search_settings_set_wrap_around(gtk_source_search_context_get_settings(context), TRUE);
         
         doc->buffer = buffer;
-        doc->view = main;
+        doc->view = text;
         doc->context = context;
         doc->window = editor->window;
+        doc->scrolled = main;
 
         // Update main struct
         editor->current = doc;

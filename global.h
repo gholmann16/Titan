@@ -11,6 +11,7 @@ struct Document {
     char name[256];
     GtkTextBuffer * buffer;
     GtkWindow * window;
+    GtkWidget * scrolled;
     GtkWidget * view;
     GtkSourceSearchContext * context;
     int ro;

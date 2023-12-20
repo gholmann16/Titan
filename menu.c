@@ -153,8 +153,13 @@ int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** documen
 
     GtkWidget * wrap = gtk_check_menu_item_new_with_label("Wrap line");
     g_signal_connect(wrap, "activate", G_CALLBACK(wrap_command), document);
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(wrap), TRUE);
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(wrap), FALSE);
     gtk_menu_shell_append(GTK_MENU_SHELL(optionsmenu), wrap);
+
+    GtkWidget * spaces = gtk_check_menu_item_new_with_label("Convert tabs to spaces");
+    g_signal_connect(spaces, "activate", G_CALLBACK(spaces_command), document);
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(spaces), TRUE);
+    gtk_menu_shell_append(GTK_MENU_SHELL(optionsmenu), spaces);
 
     GtkWidget * help = gtk_menu_item_new_with_label("Help");
     gtk_menu_shell_append(GTK_MENU_SHELL(bar), help);
@@ -163,7 +168,7 @@ int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** documen
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(help), helpmenu);
 
     GtkWidget * about = gtk_menu_item_new_with_label("About");
-    g_signal_connect(about, "activate", G_CALLBACK(about_command), document);
+    g_signal_connect(about, "activate", G_CALLBACK(about_command), editor);
     gtk_menu_shell_append(GTK_MENU_SHELL(helpmenu), about);
 
     return 0;

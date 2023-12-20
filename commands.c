@@ -214,7 +214,6 @@ void exit_command(GtkWidget * self, struct Editor * editor) {
         gtk_main_quit();
         return;
     }
-    printf("%s\n", editor->current);
 
     if (gtk_text_buffer_get_modified(editor->current->buffer) == FALSE) {
         gtk_main_quit();
@@ -246,6 +245,36 @@ void exit_command(GtkWidget * self, struct Editor * editor) {
 gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Editor * editor) {
     exit_command(self, editor);
     return TRUE;
+}
+
+void kill_tab_n(struct Editor * editor, int x) {
+    gtk_notebook_remove_page(GTK_NOTEBOOK(editor->tabs), x);
+
+    if (editor->pages[x] == editor->current) {
+        editor->current = NULL;
+    }
+    free(editor->pages[x]);
+    
+    struct Document ** newpages = malloc(sizeof(struct Document *) * (editor->len - 1));
+
+    int z = 0;
+    for (int y = 0; y < editor->len; y++) {
+        if (x != y) {
+            newpages[z] = editor->pages[y];
+            z++;
+        }
+    }
+
+    free(editor->pages);
+
+    editor->pages = newpages;
+    editor->len = editor->len - 1;
+}
+
+void close_tab_command(GtkWidget * self, struct Editor * editor) {
+    if (editor->current == NULL) return;
+    int x = gtk_notebook_page_num (GTK_NOTEBOOK(editor->tabs), editor->current->scrolled);
+    kill_tab_n(editor, x);
 }
 
 void undo_command(GtkWidget * self, struct Document ** document) {
@@ -525,19 +554,25 @@ void wrap_command(GtkWidget * self, struct Document ** document) {
     }
 }
 
-void about_command(GtkWidget * self, struct Document ** document) {
+void spaces_command(GtkWidget * self, struct Document ** document) {
     if(*document == NULL) return;
+    if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(self))) {
+        gtk_source_view_set_insert_spaces_instead_of_tabs(GTK_SOURCE_VIEW((*document)->view), TRUE);
+    }
+    else {
+        gtk_source_view_set_insert_spaces_instead_of_tabs(GTK_SOURCE_VIEW((*document)->view), FALSE);
+    }
+}
+
+void about_command(GtkWidget * self, struct Editor * editor) {
     GtkWidget * about_dialog = gtk_about_dialog_new();
     GtkAboutDialog * about = GTK_ABOUT_DIALOG(about_dialog);
 
-    GdkPixbuf * icon = gtk_window_get_icon((*document)->window);
+    GdkPixbuf * icon = gtk_window_get_icon(editor->window);
     gtk_about_dialog_set_logo(about, icon);
 
     const char * authors[] = {"Gabriel Holmann <gholmann16@gmail.com>", NULL};
     gtk_about_dialog_set_authors(about, authors);
-
-    const char * artists[] = {"Flaticon.com", NULL};
-    gtk_about_dialog_set_artists(about, artists);
 
     gtk_about_dialog_set_license_type(about, GTK_LICENSE_GPL_3_0);
 
@@ -549,34 +584,4 @@ void about_command(GtkWidget * self, struct Document ** document) {
 
     gtk_dialog_run(GTK_DIALOG(about_dialog));
     gtk_widget_destroy(about_dialog);
-}
-
-void kill_tab_n(struct Editor * editor, int x) {
-    gtk_notebook_remove_page(GTK_NOTEBOOK(editor->tabs), gtk_notebook_page_num(GTK_NOTEBOOK(editor->tabs), (editor->pages[x])->view));
-
-    if (editor->pages[x] == editor->current) {
-        editor->current = NULL;
-    }
-    free(editor->pages[x]);
-    
-    struct Document ** newpages = malloc(sizeof(struct Document *) * (editor->len - 1));
-
-    int z = 0;
-    for (int y = 0; y < editor->len; y++) {
-        if (x != y) {
-            newpages[z] = editor->pages[y];
-            z++;
-        }
-    }
-
-    free(editor->pages);
-
-    editor->pages = newpages;
-    editor->len = editor->len - 1;
-}
-
-void close_tab_command(GtkWidget * self, struct Editor * editor) {
-    if (editor->current == NULL) return;
-    int x = gtk_notebook_page_num (GTK_NOTEBOOK(editor->tabs), editor->current->view);
-    kill_tab_n(editor, x);
 }

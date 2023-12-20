@@ -48,4 +48,6 @@ void font_command(GtkWidget * self, struct Document ** document);
 
 void wrap_command(GtkWidget * self, struct Document ** document);
 
-void about_command(GtkWidget * self, struct Document ** document);
+void spaces_command(GtkWidget * self, struct Document ** document);
+
+void about_command(GtkWidget * self, struct Editor * editor);
