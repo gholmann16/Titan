@@ -1,5 +1,5 @@
-trion: commands.o menu.o main.o explorer.o tools.o
-	cc main.o -g `pkg-config --libs gtksourceview-4` commands.o menu.o tools.o explorer.o -o triton
+triton: commands.o menu.o main.o explorer.o tools.o searcher.o gitter.o
+	cc main.o -g `pkg-config --libs gtksourceview-4` commands.o menu.o tools.o explorer.o searcher.o gitter.o -o triton
 main.o: main.c
 	cc main.c -c `pkg-config --cflags gtksourceview-4`
 commands.o: commands.c
@@ -8,15 +8,19 @@ menu.o: menu.c
 	cc menu.c -c `pkg-config --cflags gtksourceview-4`
 explorer.o: explorer.c
 	cc explorer.c -c `pkg-config --cflags gtksourceview-4`
+searcher.o: searcher.c
+	cc searcher.c -c `pkg-config --cflags gtksourceview-4`
 tools.o: tools.c
 	cc tools.c -c `pkg-config --cflags gtksourceview-4`
+gitter.o: gitter.c
+	cc gitter.c -c `pkg-config --cflags gtksourceview-4`
 
 clean:
 	rm *.o
 
-appimage: commands.o menu.o main.o tools.o explorer.o
+appimage: commands.o menu.o tools.o explorer.o searcher.o gitter.o 
 	cc -O3 release/AppRun.c -o release/AppRun
-	cc -O3 main.o `pkg-config --libs gtksourceview-4` commands.o menu.o tools.o explorer.o -o triton
+	cc -O3 main.o `pkg-config --libs gtksourceview-4` commands.o menu.o tools.o explorer.o searcher.o gitter.o -o triton
 	strip release/AppRun
 	strip triton
 	mkdir -p release/usr/lib

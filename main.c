@@ -4,6 +4,8 @@
 #include "menu.h"
 #include "tools.h"
 #include "explorer.h"
+#include "searcher.h"
+#include "gitter.h"
 
 int main(int argc, char * argv[]) {
 
@@ -54,11 +56,12 @@ int main(int argc, char * argv[]) {
 
     // Tools
     struct Panels panels;
+
     init_toolbar(sections, &panels);
 
     init_explorer(sections, &editor, &panels);
-    //init_searcher
-    //init_gitter
+    init_searcher(sections, &editor, &panels);
+    init_gitter(sections, &editor, &panels);
 
     // Add boxes together
     gtk_box_pack_start(GTK_BOX(box), bar, 0, 0, 0);
@@ -68,7 +71,8 @@ int main(int argc, char * argv[]) {
     // Pack up app and run
     gtk_container_add(GTK_CONTAINER(window), box);
     gtk_widget_show_all (window);
-
+    gtk_widget_set_visible(panels.searcher, FALSE);
+    gtk_widget_set_visible(panels.gitter, FALSE);
     /*
     if (argc > 1) {
         if (getenv("OWD") != NULL) {
