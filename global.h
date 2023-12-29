@@ -1,5 +1,5 @@
 struct Editor {
-    GtkWidget * tabs;
+    GtkNotebook * tabs;
     GtkWindow * window;
     char * cwd;
     struct Document * current;
@@ -19,6 +19,7 @@ struct Document {
     GtkWindow * window;
     GtkWidget * scrolled;
     GtkWidget * view;
+    GtkWidget * modified;
     GtkSourceSearchContext * context;
     enum Filetype type;
 };

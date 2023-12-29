@@ -248,7 +248,7 @@ gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Editor * editor) 
 }
 
 void kill_tab_n(struct Editor * editor, int x) {
-    gtk_notebook_remove_page(GTK_NOTEBOOK(editor->tabs), x);
+    gtk_notebook_remove_page(editor->tabs, x);
 
     if (editor->pages[x] == editor->current) {
         editor->current = NULL;
@@ -273,7 +273,7 @@ void kill_tab_n(struct Editor * editor, int x) {
 
 void close_tab_command(GtkWidget * self, struct Editor * editor) {
     if (editor->current == NULL) return;
-    int x = gtk_notebook_page_num (GTK_NOTEBOOK(editor->tabs), editor->current->scrolled);
+    int x = gtk_notebook_page_num (editor->tabs, editor->current->scrolled);
     kill_tab_n(editor, x);
 }
 

@@ -4,10 +4,21 @@
 
 void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor);
 
+void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {    
+    //Assumes it's the current tab
+    if (gtk_text_buffer_get_modified(buf)) {
+        gtk_widget_show(editor->current->modified);
+    }
+    else {
+        gtk_widget_hide(editor->current->modified);
+    }
+}
+
 void tab_selected(GtkNotebook * notebook, GtkWidget * page, gint num, struct Editor * editor) {
     for(int x = 0; x < editor->len; x++) {
         if((editor->pages[x])->scrolled == page) {
             editor->current = editor->pages[x];
+            return;
         }
     }
 }
@@ -16,7 +27,7 @@ void close_tab(GtkButton * close, struct Editor * editor) {
     GtkWidget * head = gtk_widget_get_parent(GTK_WIDGET(close));
     int x;
     for(x = 0; x < editor->len; x++) {
-        if(gtk_notebook_get_tab_label(GTK_NOTEBOOK(editor->tabs), (editor->pages[x])->scrolled) == head)
+        if(gtk_notebook_get_tab_label(editor->tabs, (editor->pages[x])->scrolled) == head)
             break;
     }
 
@@ -93,11 +104,16 @@ void newpage(char * filename, struct Editor * editor, char * path) {
     gchar * content_type = g_content_type_guess(filename, NULL, 0, NULL);
     GtkWidget * main;
 
+    doc->window = editor->window;
+    doc->modified = gtk_image_new_from_icon_name("gtk-dialog-question", 2);;
+
+    // Update main struct
+    editor->current = doc;
+
     if(strncmp(content_type, "image", 5) == 0) {
         main = gtk_image_new_from_file (path);
-        doc->scrolled = main;
-        doc->window = editor->window;
         doc->type = Image;
+        doc->scrolled = main;
     }
     else {
         GtkWidget * text = gtk_source_view_new();
@@ -108,7 +124,9 @@ void newpage(char * filename, struct Editor * editor, char * path) {
         
         main = gtk_scrolled_window_new(NULL, NULL);
         gtk_container_add(GTK_CONTAINER(main), text);
+
         GtkTextBuffer * buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
+        g_signal_connect(buffer, "modified-changed", G_CALLBACK(change_indicator), editor);
 
         GtkSourceSearchContext * context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), NULL);
         GtkSourceLanguageManager * manager = gtk_source_language_manager_get_default();
@@ -122,11 +140,8 @@ void newpage(char * filename, struct Editor * editor, char * path) {
         doc->buffer = buffer;
         doc->view = text;
         doc->context = context;
-        doc->window = editor->window;
         doc->scrolled = main;
 
-        // Update main struct
-        editor->current = doc;
         open_file(path, &editor->current);
     }
 
@@ -136,14 +151,19 @@ void newpage(char * filename, struct Editor * editor, char * path) {
     GtkWidget * box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     GtkWidget * label = gtk_label_new(filename);
     GtkWidget * close = gtk_button_new_from_icon_name("window-close", 2);
+
     gtk_button_set_relief(GTK_BUTTON(close), GTK_RELIEF_NONE);
     g_signal_connect(close, "clicked", G_CALLBACK(close_tab), editor);
+
     gtk_widget_show(label);
     gtk_widget_show(close);
+
     gtk_box_pack_start(GTK_BOX(box), label, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), close, 0, 0, 0);
-    gtk_notebook_append_page(GTK_NOTEBOOK(editor->tabs), main, box);
-    gtk_notebook_set_current_page(GTK_NOTEBOOK(editor->tabs), gtk_notebook_page_num(GTK_NOTEBOOK(editor->tabs), main));
+    gtk_box_pack_start(GTK_BOX(box), doc->modified, 0, 0, 0);
+
+    gtk_notebook_append_page(editor->tabs, main, box);
+    gtk_notebook_set_current_page(editor->tabs, gtk_notebook_page_num(editor->tabs, main));
 
 }
 

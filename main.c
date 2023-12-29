@@ -38,7 +38,7 @@ int main(int argc, char * argv[]) {
     char * current = getenv("OWD") ?: cwd;
 
     // Editor initilization
-    editor.tabs = tabs;
+    editor.tabs = GTK_NOTEBOOK(tabs);
     editor.cwd = current;
     editor.len = 0;
     editor.window = GTK_WINDOW(window);

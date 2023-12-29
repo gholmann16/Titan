@@ -5,13 +5,20 @@ GtkWidget * entry;
 GtkWidget * entry2;
 
 void find_all(GtkWidget * self, struct Editor * editor) {
-    char query [514] = {0};
-    query[0] = '\"';
+    /* Uses popen because if you are trying to inject code into your own system feel free
+        I suppose if the app was running with sudo for some reason you could exploit that, 
+        but in that case you could just use the app to write to root file anyway */
+    char query [256] = "grep -Rn \"";
     strlcat(query, gtk_entry_get_text(GTK_ENTRY(entry)), sizeof(query));
-    strlcat(query, "\"", sizeof(query));
-    if (fork()) {
-        execl("/usr/bin/grep", "grep", "-Rn", query, ".", NULL);
-        exit(1);
+    strlcat(query, "\" .", sizeof(query));
+    FILE * f = popen(query, "r");
+    
+    char output [1024];
+    if (fgets(output, sizeof(output), f)) {
+        printf("output\n");
+    }
+    else {
+        printf("No matches found\n");    
     }
     return;
 }
