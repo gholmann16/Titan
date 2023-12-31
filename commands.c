@@ -1,15 +1,16 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
+#include "explorer.h"
 
 void filename_to_title(struct Document ** document) {
-    char title[264] = {0};
+    char title[265] = {0};
     char * p = (*document)->name;
     if (strrchr((*document)->name, '/') != NULL) {
         p = strrchr((*document)->name, '/') + 1;
     }
     strlcat(title, p, sizeof(title));
     strlcat(title, " - Triton", sizeof(title));
-    gtk_window_set_title(GTK_WINDOW((*document)->window), title);
+    gtk_window_set_title((*document)->window, title);
 }
 
 int open_file(char * filename, struct Document ** document) {
@@ -63,17 +64,17 @@ int open_file(char * filename, struct Document ** document) {
     return 0;
 }
 
-void open_command(GtkWidget * self, struct Document ** document) {
+void open_command(GtkWidget * self, struct Editor * editor) {
     
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-    GtkWidget *dialog = gtk_file_chooser_dialog_new ("Open File", (*document)->window, action, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Open"), GTK_RESPONSE_ACCEPT, NULL);
+    GtkWidget *dialog = gtk_file_chooser_dialog_new ("Open File", editor->window, action, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Open"), GTK_RESPONSE_ACCEPT, NULL);
 
     gint res = gtk_dialog_run (GTK_DIALOG (dialog));
     if (res == GTK_RESPONSE_ACCEPT)
     {
         GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
         char * filename = gtk_file_chooser_get_filename (chooser);
-        open_file(filename, document);
+        newpage(editor, filename);
         g_free (filename);
     }
 

@@ -27,7 +27,7 @@ int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** documen
 
     GtkWidget * open = gtk_menu_item_new_with_label("Open");
     gtk_widget_add_accelerator(open, "activate", accel, GDK_KEY_O, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
-    g_signal_connect(open, "activate", G_CALLBACK(open_command), document);
+    g_signal_connect(open, "activate", G_CALLBACK(open_command), editor);
     gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), open);
 
     GtkWidget * save = gtk_menu_item_new_with_label("Save");
