@@ -23,9 +23,3 @@ struct Document {
     GtkSourceSearchContext * context;
     enum Filetype type;
 };
-
-struct Panels {
-    GtkWidget * explorer;
-    GtkWidget * searcher;
-    GtkWidget * gitter;
-};

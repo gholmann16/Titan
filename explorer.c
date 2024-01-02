@@ -185,15 +185,9 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
     }
 }
 
-int init_explorer(GtkWidget * sections, struct Editor * editor, struct Panels * panels) {
-
-    GtkWidget * explorer = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    panels->explorer = explorer;
-
-    GtkWidget * expander = gtk_expander_new("Code\t\t");
+void init_explorer(GtkWidget * explorer, struct Editor * editor) {
+    GtkWidget * expander = gtk_expander_new("Code");
     gtk_box_pack_start(GTK_BOX(explorer), expander, 1, 1, 0);
     gtk_expander_set_expanded(GTK_EXPANDER(expander), TRUE);
     fill_expander(expander, editor->cwd, editor);
-
-    gtk_box_pack_start(GTK_BOX(sections), explorer, 0, 0, 0);
 }

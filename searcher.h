@@ -1,1 +1,1 @@
-void init_searcher(GtkWidget * sections, struct Editor * editor, struct Panels * panels);
+void init_searcher(GtkWidget * searcher, struct Editor * editor);

@@ -1,1 +1,1 @@
-void init_toolbar(GtkWidget * sections, struct Panels * panels);
+void init_toolbar(GtkBox * sections, struct Editor * editor);

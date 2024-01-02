@@ -23,9 +23,7 @@ void find_all(GtkWidget * self, struct Editor * editor) {
     return;
 }
 
-void init_searcher(GtkWidget * sections, struct Editor * editor, struct Panels * panels) {
-    GtkWidget * searcher = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    panels->searcher = searcher;
+void init_searcher(GtkWidget * searcher, struct Editor * editor) {
 
     // Search
     GtkWidget * box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
@@ -56,5 +54,4 @@ void init_searcher(GtkWidget * sections, struct Editor * editor, struct Panels *
     gtk_container_add(GTK_CONTAINER(searcher), bubble);
     gtk_container_add(GTK_CONTAINER(searcher), bubble2);
     
-    gtk_box_pack_start(GTK_BOX(sections), searcher, 0, 0, 0);
 }
