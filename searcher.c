@@ -1,15 +1,25 @@
 #include <gtksourceview/gtksource.h>
 #include <dirent.h>
 #include "global.h"
+#include "file.h"
 
 #define MAX_QUERY 256
 
 void find_all(GtkWidget * entry, struct Editor * editor) {
+
+    const char * search = gtk_entry_get_text(GTK_ENTRY(entry));
+
     DIR * cwd = opendir(editor->cwd);
     struct dirent *dp;
 
     while ((dp = readdir (cwd)) != NULL) {
-        printf("%s\n", dp->d_name);
+        if(is_dir(dp)) {
+            continue;
+        }
+        struct BetterString * string = file_text(dp->d_name);
+        if (strstr(string->contents, search)) {
+            printf("%s found\n", dp->d_name);
+        }
     }
     return;
 }
@@ -42,5 +52,7 @@ void init_searcher(GtkWidget * searcher, struct Editor * editor) {
 
     gtk_container_add(GTK_CONTAINER(searcher), bubble);
     gtk_container_add(GTK_CONTAINER(searcher), bubble2);
+
+    GtkWidget * results = gtk_scrolled_window_new(NULL, NULL);
     
 }

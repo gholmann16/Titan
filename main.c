@@ -28,6 +28,7 @@ int main(int argc, char * argv[]) {
     // Main view
 
     GtkWidget * tabs = gtk_notebook_new();
+    gtk_notebook_set_scrollable(GTK_NOTEBOOK(tabs), TRUE);
     g_signal_connect(tabs, "switch-page", G_CALLBACK(tab_selected), &editor);
 
     // Current working directory

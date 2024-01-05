@@ -186,8 +186,11 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
 }
 
 void init_explorer(GtkWidget * explorer, struct Editor * editor) {
+    GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
+    gtk_box_pack_start(GTK_BOX(explorer), scrolled, 1, 1, 0);
+
     GtkWidget * expander = gtk_expander_new("Code");
-    gtk_box_pack_start(GTK_BOX(explorer), expander, 1, 1, 0);
     gtk_expander_set_expanded(GTK_EXPANDER(expander), TRUE);
     fill_expander(expander, editor->cwd, editor);
+    gtk_container_add(GTK_CONTAINER(scrolled), expander);
 }
