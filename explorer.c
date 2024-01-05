@@ -1,6 +1,7 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
 #include "commands.h"
+#include "file.h"
 
 void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {    
     //Assumes it's the current tab
@@ -147,42 +148,41 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
     struct dirent *ent;
     char path[512];
 
-    if ((dir = opendir (directory)) != NULL) {
-        /* print all the files and directories within directory */
-        while ((ent = readdir (dir)) != NULL) {
-            if (ent->d_type == DT_DIR) {
-                if (strcmp(ent->d_name, ".") && strcmp(ent->d_name, "..") && strcmp(ent->d_name, ".git")) {
-                    GtkWidget * folder = gtk_expander_new(ent->d_name);
-                    gtk_list_box_insert(GTK_LIST_BOX(files), folder, -1);
-                    gtk_widget_set_visible(folder, TRUE);
+    if ((dir = opendir (directory)) == NULL) {
+        perror ("");
+        return;
+    }
 
-                    strlcpy(path, directory, sizeof(path));
-                    strlcat(path, "/", sizeof(path));
-                    strlcat(path, ent->d_name, sizeof(path));
+    /* print all the files and directories within directory */
+    while ((ent = readdir (dir)) != NULL) {
+        if (is_dir(ent)) {
+            if (strcmp(ent->d_name, ".") && strcmp(ent->d_name, "..") && strcmp(ent->d_name, ".git")) {
+                GtkWidget * folder = gtk_expander_new(ent->d_name);
+                gtk_list_box_insert(GTK_LIST_BOX(files), folder, -1);
+                gtk_widget_set_visible(folder, TRUE);
 
-                    fill_expander(folder, path, editor);
-                }
-            }
-            else {
-                GtkWidget * name = gtk_label_new(ent->d_name);
                 strlcpy(path, directory, sizeof(path));
                 strlcat(path, "/", sizeof(path));
                 strlcat(path, ent->d_name, sizeof(path));
-                gtk_widget_set_name(name, path);
-                gtk_label_set_xalign(GTK_LABEL(name), 0.0);
-                gtk_list_box_insert(GTK_LIST_BOX(files), name, -1);
-                gtk_widget_set_visible(name, TRUE);
+
+                fill_expander(folder, path, editor);
             }
         }
-        closedir (dir);
+        else {
+            GtkWidget * name = gtk_label_new(ent->d_name);
+            strlcpy(path, directory, sizeof(path));
+            strlcat(path, "/", sizeof(path));
+            strlcat(path, ent->d_name, sizeof(path));
+            gtk_widget_set_name(name, path);
+            gtk_label_set_xalign(GTK_LABEL(name), 0.0);
+            gtk_list_box_insert(GTK_LIST_BOX(files), name, -1);
+            gtk_widget_set_visible(name, TRUE);
+        }
+    }
+    closedir (dir);
 
-        g_signal_connect(files, "row-selected", G_CALLBACK(selected), editor);
-        gtk_widget_set_visible(files, TRUE);
-    }
-    
-    else {
-        perror ("");
-    }
+    g_signal_connect(files, "row-selected", G_CALLBACK(selected), editor);
+    gtk_widget_set_visible(files, TRUE);
 }
 
 void init_explorer(GtkWidget * explorer, struct Editor * editor) {

@@ -1,5 +1,5 @@
-triton: commands.o menu.o main.o explorer.o tools.o searcher.o gitter.o
-	cc main.o -g `pkg-config --libs gtksourceview-4` commands.o menu.o tools.o explorer.o searcher.o gitter.o -o triton
+triton: commands.o menu.o main.o explorer.o tools.o searcher.o gitter.o file.o
+	cc main.o -g `pkg-config --libs gtksourceview-4` commands.o menu.o tools.o explorer.o searcher.o gitter.o file.o -o triton
 main.o: main.c
 	cc main.c -c `pkg-config --cflags gtksourceview-4`
 commands.o: commands.c
@@ -14,6 +14,8 @@ tools.o: tools.c
 	cc tools.c -c `pkg-config --cflags gtksourceview-4`
 gitter.o: gitter.c
 	cc gitter.c -c `pkg-config --cflags gtksourceview-4`
+file.o: file.c
+	cc file.c -c
 
 clean:
 	rm *.o

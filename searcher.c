@@ -1,52 +1,41 @@
 #include <gtksourceview/gtksource.h>
+#include <dirent.h>
 #include "global.h"
 
-GtkWidget * entry;
-GtkWidget * entry2;
+#define MAX_QUERY 256
 
-void find_all(GtkWidget * self, struct Editor * editor) {
-    /* Uses popen because if you are trying to inject code into your own system feel free
-        I suppose if the app was running with sudo for some reason you could exploit that, 
-        but in that case you could just use the app to write to root file anyway */
-    char query [256] = "grep -Rn \"";
-    strlcat(query, gtk_entry_get_text(GTK_ENTRY(entry)), sizeof(query));
-    strlcat(query, "\" .", sizeof(query));
-    FILE * f = popen(query, "r");
-    
-    char output [1024];
-    if (fgets(output, sizeof(output), f)) {
-        printf("output\n");
-    }
-    else {
-        printf("No matches found\n");    
+void find_all(GtkWidget * entry, struct Editor * editor) {
+    DIR * cwd = opendir(editor->cwd);
+    struct dirent *dp;
+
+    while ((dp = readdir (cwd)) != NULL) {
+        printf("%s\n", dp->d_name);
     }
     return;
+}
+
+void replace_tool(GtkWidget * entry) {
+    
 }
 
 void init_searcher(GtkWidget * searcher, struct Editor * editor) {
 
     // Search
-    GtkWidget * box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-    GtkWidget * label = gtk_label_new("Search text:");
-    entry = gtk_entry_new();
-    GtkWidget * search_button = gtk_button_new_with_label("Search");
-    g_signal_connect(search_button, "released", G_CALLBACK(find_all), editor);
+    GtkWidget * box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    GtkWidget * entry = gtk_entry_new();
+    gtk_entry_set_max_length(GTK_ENTRY(entry), MAX_QUERY); //Might only be unicode max length though
+    g_signal_connect(entry, "activate", G_CALLBACK(find_all), editor);
 
-    gtk_box_pack_start(GTK_BOX(box), label, 0, 0, 0);
-    gtk_box_pack_start(GTK_BOX(box), entry, 0, 0, 0);
-    gtk_box_pack_start(GTK_BOX(box), search_button, 0, 0, 0);
-    gtk_container_add(GTK_CONTAINER(searcher), box);
+    gtk_box_pack_start(GTK_BOX(searcher), entry, 0, 0, 0);
 
     // Replace
-    GtkWidget * box2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-    GtkWidget * label2 = gtk_label_new("Replace text");
-    entry2 = gtk_entry_new();
+    GtkWidget * box2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    GtkWidget * entry2 = gtk_entry_new();
+    gtk_entry_set_max_length(GTK_ENTRY(entry2), MAX_QUERY);
+    g_signal_connect(entry2, "activate", G_CALLBACK(replace_tool), editor);
     GtkWidget * replace_button = gtk_button_new_with_label("Replace");
 
-    gtk_box_pack_start(GTK_BOX(box2), label2, 0, 0, 0);
-    gtk_box_pack_start(GTK_BOX(box2), entry2, 0, 0, 0);
-    gtk_box_pack_start(GTK_BOX(box2), replace_button, 0, 0, 0);
-    gtk_container_add(GTK_CONTAINER(searcher), box2);
+    gtk_box_pack_start(GTK_BOX(searcher), entry2, 0, 0, 0);
 
     GtkWidget * bubble = gtk_check_button_new_with_label("Match case");
     GtkWidget * bubble2 = gtk_check_button_new_with_label("Replace all");

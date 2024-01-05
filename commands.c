@@ -1,6 +1,7 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
 #include "explorer.h"
+#include "file.h"
 
 void filename_to_title(struct Document ** document) {
     char title[265] = {0};
@@ -15,19 +16,10 @@ void filename_to_title(struct Document ** document) {
 
 int open_file(char * filename, struct Document ** document) {
     
-    // Get file
-    FILE * f = fopen(filename, "r");
-    char * contents;
-    gsize len;
-
-    fseek(f, 0L, SEEK_END);
-    len = ftell(f);
-    
-    fseek(f, 0L, SEEK_SET);	
-    contents = (char*)calloc(len, sizeof(char));	
-    
-    fread(contents, sizeof(char), len, f);
-    fclose(f);
+    struct BetterString * string = file_text(filename);
+    char * contents = string->contents;
+    size_t len = string->length;
+    free(string);
 
     (*document)->type = Text;
 
