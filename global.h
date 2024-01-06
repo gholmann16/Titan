@@ -1,3 +1,6 @@
+#define MAX_PATH 512
+#define MAX_FILE 256
+
 struct Editor {
     GtkNotebook * tabs;
     GtkWindow * window;
@@ -14,7 +17,7 @@ enum Filetype {
 };
 
 struct Document {
-    char name[256];
+    char name[MAX_FILE];
     GtkTextBuffer * buffer;
     GtkWindow * window;
     GtkWidget * scrolled;

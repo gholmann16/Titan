@@ -7,7 +7,7 @@ void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {
     //Assumes it's the current tab
     if (gtk_text_buffer_get_modified(buf)) {
         const char * current = gtk_window_get_title(editor->window);
-        char newtitle [267] = "* ";
+        char newtitle [MAX_FILE + 11] = "* ";
         strlcat(newtitle, current, sizeof(newtitle));
         gtk_window_set_title(editor->window, newtitle);
         gtk_widget_show(editor->current->modified);
@@ -146,7 +146,7 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
 
     DIR *dir;
     struct dirent *ent;
-    char path[512];
+    char path[MAX_FILE];
 
     if ((dir = opendir (directory)) == NULL) {
         perror ("");

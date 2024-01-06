@@ -32,8 +32,8 @@ int main(int argc, char * argv[]) {
     g_signal_connect(tabs, "switch-page", G_CALLBACK(tab_selected), &editor);
 
     // Current working directory
-    char cwd[256];
-    getcwd(cwd, 256);
+    char cwd[MAX_FILE];
+    getcwd(cwd, MAX_FILE);
     char * current = getenv("OWD") ?: cwd;
 
     // Editor initilization

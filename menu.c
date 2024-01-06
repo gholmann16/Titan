@@ -2,14 +2,6 @@
 #include "global.h"
 #include "commands.h"
 
-int file_menu() {
-
-}
-
-int standard_menu() {
-    
-}
-
 int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** document, struct Editor * editor) {
 
     // File menu

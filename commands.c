@@ -4,7 +4,7 @@
 #include "file.h"
 
 void filename_to_title(struct Document ** document) {
-    char title[265] = {0};
+    char title[MAX_FILE + 9] = {0};
     char * p = (*document)->name;
     if (strrchr((*document)->name, '/') != NULL) {
         p = strrchr((*document)->name, '/') + 1;
