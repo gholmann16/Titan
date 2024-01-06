@@ -14,7 +14,7 @@ int main(int argc, char * argv[]) {
     gtk_init(NULL, NULL);
 
     GtkWidget * window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_default_size(GTK_WINDOW(window), 840, 620);
+    gtk_window_set_default_size(GTK_WINDOW(window), 1080, 840);
     g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), &editor);
 
     GError *error = NULL;
