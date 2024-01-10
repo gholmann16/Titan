@@ -16,7 +16,8 @@ struct BetterString * file_text(char * filename) {
     len = ftell(f);
     
     fseek(f, 0L, SEEK_SET);
-    contents = (char*)calloc(len, sizeof(char));	
+    contents = (char*)malloc(len + 1);	
+    contents[len] = 0;
     
     fread(contents, sizeof(char), len, f);
     fclose(f);

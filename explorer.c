@@ -77,6 +77,7 @@ void newpage(struct Editor * editor, char * path) {
     else {
         GtkWidget * text = gtk_source_view_new();
         gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text), GTK_WRAP_NONE);
+        gtk_text_view_set_monospace(GTK_TEXT_VIEW(text), TRUE);
         gtk_source_view_set_insert_spaces_instead_of_tabs(GTK_SOURCE_VIEW(text), TRUE);
         gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(text), 4);
         gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text), TRUE);

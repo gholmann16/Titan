@@ -15,8 +15,8 @@ void clickfind(GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
 void clear_search(GtkContainer * searcher) {
     GList * children = gtk_container_get_children(searcher);
     while(1) {
-        if (GTK_IS_EXPANDER(children->data)) {
-            gtk_widget_destroy(children->data);
+        if (GTK_IS_SCROLLED_WINDOW(children->data)) {
+            gtk_container_remove(searcher, children->data);
         }
         if(children->next == 0)
             break;
@@ -26,10 +26,15 @@ void clear_search(GtkContainer * searcher) {
 
 void find_all(GtkWidget * entry, struct Editor * editor) {
 
-    const char * search = gtk_entry_get_text(GTK_ENTRY(entry));
     GtkContainer * searcher = GTK_CONTAINER(gtk_widget_get_parent (entry));
-    
     clear_search(searcher);
+
+    const char * search = gtk_entry_get_text(GTK_ENTRY(entry));
+
+    GtkWidget * results = gtk_scrolled_window_new(NULL, NULL);
+    gtk_box_pack_start(GTK_BOX(searcher), results, 1, 1, 0);
+    GtkContainer * box = GTK_CONTAINER(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
+    gtk_container_add(GTK_CONTAINER(results), GTK_WIDGET(box));
 
     size_t len = strlen(search);
 
@@ -42,8 +47,7 @@ void find_all(GtkWidget * entry, struct Editor * editor) {
             continue;
 
         struct BetterString * string = file_text(dp->d_name);
-        char * place = string->contents;
-        place = strstr(place, search);
+        char * place = strstr(string->contents, search);
 
         if (!place)
             continue;
@@ -58,6 +62,9 @@ void find_all(GtkWidget * entry, struct Editor * editor) {
             while(temp != string->contents) {
                 if (*temp == '\n') {
                     temp++;
+                    break;
+                }
+                else if (place - temp == 16) {
                     break;
                 }
                 temp--;
@@ -84,11 +91,17 @@ void find_all(GtkWidget * entry, struct Editor * editor) {
             place = strstr(place, search);
         }
 
+        free(string->contents);
+        free(string);
+
         g_signal_connect(instances, "row-selected", G_CALLBACK(clickfind), editor);
 
-        gtk_widget_show_all(file_expander);
-        gtk_container_add(searcher, file_expander);
+        gtk_container_add(box, file_expander);
+        gtk_expander_set_expanded(GTK_EXPANDER(file_expander), TRUE);
     }
+
+    gtk_widget_show_all(results);
+
     return;
 }
 
@@ -120,7 +133,5 @@ void init_searcher(GtkWidget * searcher, struct Editor * editor) {
 
     gtk_container_add(GTK_CONTAINER(searcher), bubble);
     gtk_container_add(GTK_CONTAINER(searcher), bubble2);
-
-    GtkWidget * results = gtk_scrolled_window_new(NULL, NULL);
     
 }

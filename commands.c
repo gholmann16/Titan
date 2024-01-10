@@ -21,8 +21,6 @@ int open_file(char * filename, struct Document ** document) {
     size_t len = string->length;
     free(string);
 
-    (*document)->type = Text;
-
     if (g_utf8_validate(contents, len, NULL) == FALSE) {
         (*document)->type = Binary;
         gsize read;
@@ -39,11 +37,11 @@ int open_file(char * filename, struct Document ** document) {
                 contents[x] = ' ';
             }
         }
-        contents[wrote] = 0;
         free(new);
-        gtk_text_buffer_set_text((*document)->buffer, contents, -1);
+        gtk_text_buffer_set_text((*document)->buffer, contents, wrote);
     }
     else {
+        (*document)->type = Binary;
         gtk_text_buffer_set_text((*document)->buffer, contents, len);
     }
 
@@ -90,7 +88,7 @@ void read_only_popup(struct Document ** document) {
     gtk_widget_destroy (dialog);
 }
 
-int save(struct Document ** document) {
+void save(struct Document ** document) {
     
     // Collect all text
     GtkTextIter start;
@@ -107,7 +105,6 @@ int save(struct Document ** document) {
 
     gtk_text_buffer_set_modified((*document)->buffer, FALSE);
 
-    return 0;
 }
 
 void save_as_command(GtkWidget * self, struct Document ** document) {
