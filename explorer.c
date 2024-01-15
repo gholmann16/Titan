@@ -1,7 +1,7 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
 #include "commands.h"
-#include "file.h"
+#include <sys/stat.h>
 
 void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {    
     //Assumes it's the current tab
@@ -140,6 +140,18 @@ void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
 
 }
 
+int is_dir(struct dirent * ent) {
+    if (ent->d_type == DT_DIR) {
+        return 1;
+    }
+    else if (ent->d_type == DT_UNKNOWN) {
+        struct stat buf;
+        stat(ent->d_name, &buf);
+        return S_ISDIR(buf.st_mode);
+    }
+    return 0;
+}
+
 void fill_expander(GtkWidget * expander, char * directory, struct Editor * editor) {
     
     GtkWidget * files = gtk_list_box_new();
@@ -188,6 +200,7 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
 
 void init_explorer(GtkWidget * explorer, struct Editor * editor) {
     GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
+    gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(scrolled), 200);
     gtk_box_pack_start(GTK_BOX(explorer), scrolled, 1, 1, 0);
 
     GtkWidget * expander = gtk_expander_new("Code");

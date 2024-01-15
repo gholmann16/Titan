@@ -3,7 +3,6 @@
 #include "commands.h"
 #include "menu.h"
 #include "explorer.h"
-#include "tools.h"
 
 int main(int argc, char * argv[]) {
 
@@ -54,12 +53,14 @@ int main(int argc, char * argv[]) {
     GtkWidget * box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     GtkWidget * sections = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 3);
 
-    // Tools
-    init_toolbar(GTK_BOX(sections), &editor);
+    // Explorer
+    GtkWidget * explorer = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    init_explorer(explorer, &editor);
 
     // Add boxes together
     gtk_box_pack_start(GTK_BOX(box), bar, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), sections, 1, 1, 0);
+    gtk_box_pack_start(GTK_BOX(sections), explorer, 0, 1, 0);
     gtk_box_pack_end(GTK_BOX(sections), tabs, 1, 1, 0);
 
     // Pack up app and run

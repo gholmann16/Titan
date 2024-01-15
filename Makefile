@@ -5,8 +5,8 @@ ifeq ($(RELEASE),yes)
 	CFLAGS := $(CFLAGS) -O3
 endif
 
-triton: commands.o menu.o main.o explorer.o tools.o searcher.o gitter.o file.o
-	cc `pkg-config --libs gtksourceview-4` main.o commands.o menu.o tools.o explorer.o searcher.o gitter.o file.o -o triton
+triton: commands.o menu.o main.o explorer.o
+	cc `pkg-config --libs gtksourceview-4` main.o commands.o menu.o explorer.o -o triton
 main.o: main.c
 	cc main.c $(CFLAGS) $(INC_FLAGS)
 commands.o: commands.c
@@ -15,14 +15,6 @@ menu.o: menu.c
 	cc menu.c $(CFLAGS) $(INC_FLAGS)
 explorer.o: explorer.c
 	cc explorer.c $(CFLAGS) $(INC_FLAGS)
-searcher.o: searcher.c
-	cc searcher.c $(CFLAGS) $(INC_FLAGS)
-tools.o: tools.c
-	cc tools.c $(CFLAGS) $(INC_FLAGS)
-gitter.o: gitter.c
-	cc gitter.c $(CFLAGS) $(INC_FLAGS)
-file.o: file.c
-	cc file.c $(CFLAGS)
 
 clean:
 	rm *.o

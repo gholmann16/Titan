@@ -1,1 +1,0 @@
-void init_searcher(GtkWidget * searcher, struct Editor * editor);
