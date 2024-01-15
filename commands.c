@@ -4,13 +4,13 @@
 #include "file.h"
 
 void filename_to_title(struct Document ** document) {
-    char title[MAX_FILE + 9] = {0};
+    char title[MAX_FILE + 9];
     char * p = (*document)->name;
     if (strrchr((*document)->name, '/') != NULL) {
         p = strrchr((*document)->name, '/') + 1;
     }
-    strlcat(title, p, sizeof(title));
-    strlcat(title, " - Triton", sizeof(title));
+    strncpy(title, p, sizeof(title));
+    strcat(title, " - Triton");
     gtk_window_set_title((*document)->window, title);
 }
 

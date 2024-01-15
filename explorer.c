@@ -8,7 +8,7 @@ void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {
     if (gtk_text_buffer_get_modified(buf)) {
         const char * current = gtk_window_get_title(editor->window);
         char newtitle [MAX_FILE + 11] = "* ";
-        strlcat(newtitle, current, sizeof(newtitle));
+        strcat(newtitle, current);
         gtk_window_set_title(editor->window, newtitle);
         gtk_widget_show(editor->current->modified);
     }
@@ -147,7 +147,7 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
 
     DIR *dir;
     struct dirent *ent;
-    char path[MAX_FILE];
+    char path[MAX_PATH];
 
     if ((dir = opendir (directory)) == NULL) {
         perror ("");
@@ -162,18 +162,18 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
                 gtk_list_box_insert(GTK_LIST_BOX(files), folder, -1);
                 gtk_widget_set_visible(folder, TRUE);
 
-                strlcpy(path, directory, sizeof(path));
-                strlcat(path, "/", sizeof(path));
-                strlcat(path, ent->d_name, sizeof(path));
+                strcpy(path, directory);
+                strcat(path, "/");
+                strcat(path, ent->d_name);
 
                 fill_expander(folder, path, editor);
             }
         }
         else {
             GtkWidget * name = gtk_label_new(ent->d_name);
-            strlcpy(path, directory, sizeof(path));
-            strlcat(path, "/", sizeof(path));
-            strlcat(path, ent->d_name, sizeof(path));
+            strcpy(path, directory);
+            strcat(path, "/");
+            strcat(path, ent->d_name);
             gtk_widget_set_name(name, path);
             gtk_label_set_xalign(GTK_LABEL(name), 0.0);
             gtk_list_box_insert(GTK_LIST_BOX(files), name, -1);

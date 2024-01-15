@@ -12,6 +12,7 @@ int main(int argc, char * argv[]) {
     editor.pages = NULL;
 
     gtk_init(NULL, NULL);
+    gtk_source_init();
 
     GtkWidget * window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_default_size(GTK_WINDOW(window), 1080, 840);
@@ -79,6 +80,6 @@ int main(int argc, char * argv[]) {
     */
 
     gtk_main();
-
+    gtk_source_finalize();
     return 0;
 }
