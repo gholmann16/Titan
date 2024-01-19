@@ -123,7 +123,6 @@ void newpage(struct Editor * editor, char * path) {
 
     gtk_box_pack_start(GTK_BOX(box), label, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), close, 0, 0, 0);
-    gtk_box_pack_start(GTK_BOX(box), doc->modified, 0, 0, 0);
 
     gtk_notebook_append_page(editor->tabs, main, box);
     gtk_notebook_set_current_page(editor->tabs, gtk_notebook_page_num(editor->tabs, main));
@@ -152,6 +151,17 @@ int is_dir(struct dirent * ent) {
     return 0;
 }
 
+void fill_expander(GtkWidget * expander, char * directory, struct Editor * editor);
+
+void expanded(GtkExpander * self, struct Editor * editor) {
+    if (gtk_expander_get_expanded(self)) {
+        gtk_widget_destroy(gtk_bin_get_child(GTK_BIN(self)));
+    }
+    else {
+        fill_expander(GTK_WIDGET(self), (char *)gtk_widget_get_name(GTK_WIDGET(self)), editor);
+    }
+}
+
 void fill_expander(GtkWidget * expander, char * directory, struct Editor * editor) {
     
     GtkWidget * files = gtk_list_box_new();
@@ -178,7 +188,8 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
                 strcat(path, "/");
                 strcat(path, ent->d_name);
 
-                fill_expander(folder, path, editor);
+                gtk_widget_set_name(folder, path);
+                g_signal_connect(folder, "activate", G_CALLBACK(expanded), editor);
             }
         }
         else {
