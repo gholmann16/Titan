@@ -81,5 +81,10 @@ int main(int argc, char * argv[]) {
 
     gtk_main();
     gtk_source_finalize();
+
+    for (int i = 0; i < editor.len; i++) {
+        free(editor.pages[i]);
+    }
+    free(editor.pages);
     return 0;
 }
