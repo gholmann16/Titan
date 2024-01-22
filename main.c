@@ -41,6 +41,8 @@ int main(int argc, char * argv[]) {
     editor.cwd = current;
     editor.len = 0;
     editor.window = GTK_WINDOW(window);
+    editor.filesystem = NULL;
+    editor.filecount = 0;
 
     // Menu setup
     GtkAccelGroup * accel = gtk_accel_group_new();

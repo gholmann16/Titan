@@ -1,10 +1,11 @@
-#define MAX_PATH 512
 #define MAX_FILE 256
 
 struct Editor {
     GtkNotebook * tabs;
     GtkWindow * window;
     char * cwd;
+    struct File ** filesystem;
+    int filecount;
     struct Document * current;
     struct Document ** pages;
     int len;
@@ -25,4 +26,10 @@ struct Document {
     GtkWidget * modified;
     GtkSourceSearchContext * context;
     enum Filetype type;
+};
+
+struct File {
+    char * path;
+    GtkWidget * label;
+    char open;
 };

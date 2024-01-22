@@ -19,6 +19,25 @@ void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {
     }
 }
 
+char * get_path(GtkWidget * self, struct Editor * editor) {
+    for (int i = 0; i < editor->filecount; i++) {
+        if (editor->filesystem[i]->label == self) {
+            return editor->filesystem[i]->path;
+        }
+    }
+    exit(-1);
+}
+
+void set_open(GtkWidget * self, struct Editor * editor) {
+    for (int i = 0; i < editor->filecount; i++) {
+        if (editor->filesystem[i]->label == self) {
+            editor->filesystem[i]->open = !editor->filesystem[i]->open;
+            return;
+        }
+    }
+    exit(-1);
+}
+
 void tab_selected(GtkNotebook * notebook, GtkWidget * page, gint num, struct Editor * editor) {
     for(int x = 0; x < editor->len; x++) {
         if((editor->pages[x])->scrolled == page) {
@@ -44,21 +63,11 @@ void newpage(struct Editor * editor, char * path) {
     char * filename = strrchr(path, '/') + 1;
 
     struct Document * doc = malloc(sizeof(struct Document));    
-    doc->name[0] = '\0';
     strcpy(doc->name, filename);
 
-    struct Document ** newpages = malloc(sizeof(struct Document *) * (editor->len + 1));
-
-    for (int x = 0; x < editor->len; x++) {
-        newpages[x] = editor->pages[x];
-    }
-
-    newpages[editor->len] = doc;
-
-    free(editor->pages);
-
-    editor->pages = newpages;
-    editor->len = editor->len + 1;
+    editor->len++;
+    editor->pages = reallocarray(editor->pages, editor->len, sizeof(struct Document *));
+    editor->pages[editor->len - 1] = doc;
 
     gchar * content_type = g_content_type_guess(filename, NULL, 0, NULL);
     GtkWidget * main;
@@ -129,16 +138,6 @@ void newpage(struct Editor * editor, char * path) {
 
 }
 
-void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
-
-    GtkWidget * widget = gtk_bin_get_child (GTK_BIN(row));
-    if (GTK_IS_LABEL(widget)) {
-        char * path = (char *)gtk_widget_get_name(widget);
-        newpage(editor, path);
-    }
-
-}
-
 int is_dir(struct dirent * ent) {
     if (ent->d_type == DT_DIR) {
         return 1;
@@ -153,13 +152,76 @@ int is_dir(struct dirent * ent) {
 
 void fill_expander(GtkWidget * expander, char * directory, struct Editor * editor);
 
+void demolish(GtkExpander * self, struct Editor * editor) {
+    GtkWidget * listbox = gtk_bin_get_child(GTK_BIN(self));
+    GList * children = gtk_container_get_children(GTK_CONTAINER(listbox));
+    
+    int len = 0;
+    GList * cur = children;
+    while(cur) {
+        if (GTK_IS_EXPANDER(gtk_bin_get_child(GTK_BIN(cur->data)))) {
+            if (gtk_expander_get_expanded(GTK_EXPANDER(gtk_bin_get_child(GTK_BIN(cur->data))))) {
+                demolish(GTK_EXPANDER(gtk_bin_get_child(GTK_BIN(cur->data))), editor);
+            }
+        }
+        len++;
+        cur = cur->next;
+    }
+
+    int total = editor->filecount - len;
+    struct File ** newFilesystem = malloc(total * sizeof(struct File *));
+    int count = 0, add = 0;
+    for(int i = 0; i < editor->filecount; i++) {
+        cur = children;
+        add = 1;
+        while(cur) {
+            if (gtk_bin_get_child(GTK_BIN(cur->data)) == editor->filesystem[i]->label) {
+                add = 0;
+                break;
+            }
+            cur = cur->next;
+        }
+        if(add) {
+            newFilesystem[count] = editor->filesystem[i];
+            count++;
+        }
+    }
+
+    free(editor->filesystem);
+    editor->filesystem = newFilesystem;
+    editor->filecount = total;
+
+    gtk_widget_destroy(listbox);
+}
+
 void expanded(GtkExpander * self, struct Editor * editor) {
+    set_open(GTK_WIDGET(self), editor);
     if (gtk_expander_get_expanded(self)) {
-        gtk_widget_destroy(gtk_bin_get_child(GTK_BIN(self)));
+        demolish(self, editor);
     }
     else {
-        fill_expander(GTK_WIDGET(self), (char *)gtk_widget_get_name(GTK_WIDGET(self)), editor);
+        fill_expander(GTK_WIDGET(self), get_path(GTK_WIDGET(self), editor), editor);
     }
+}
+
+void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
+
+    GtkWidget * widget = gtk_bin_get_child (GTK_BIN(row));
+    if (GTK_IS_LABEL(widget)) {
+        for (int i = 0; i < editor->filecount; i++) {
+            if (editor->filesystem[i]->label == widget) {
+                if(editor->filesystem[i]->open)
+                    return;
+                else {
+                    editor->filesystem[i]->open = TRUE;
+                    newpage(editor, editor->filesystem[i]->path);
+                    return;
+                }
+            }
+        }
+        exit(-1);
+    }
+
 }
 
 void fill_expander(GtkWidget * expander, char * directory, struct Editor * editor) {
@@ -169,43 +231,62 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
 
     DIR *dir;
     struct dirent *ent;
-    char path[MAX_PATH];
 
     if ((dir = opendir (directory)) == NULL) {
         perror ("");
         return;
     }
 
-    /* print all the files and directories within directory */
+    /* add all the files and directories within directory */
     while ((ent = readdir (dir)) != NULL) {
         if (is_dir(ent)) {
             if (strcmp(ent->d_name, ".") && strcmp(ent->d_name, "..") && strcmp(ent->d_name, ".git")) {
-                GtkWidget * folder = gtk_expander_new(ent->d_name);
-                gtk_list_box_insert(GTK_LIST_BOX(files), folder, -1);
-                gtk_widget_set_visible(folder, TRUE);
 
+                editor->filecount++;
+                editor->filesystem = reallocarray(editor->filesystem, editor->filecount, sizeof(struct File *));
+                struct File * newdir = malloc(sizeof(struct File));
+                editor->filesystem[editor->filecount - 1] = newdir;
+
+                char * path = malloc(strlen(ent->d_name) + strlen(directory) + 1 + 1);
                 strcpy(path, directory);
                 strcat(path, "/");
                 strcat(path, ent->d_name);
 
-                gtk_widget_set_name(folder, path);
+                GtkWidget * folder = gtk_expander_new(ent->d_name);
+                gtk_list_box_insert(GTK_LIST_BOX(files), folder, -1);
+                gtk_widget_set_visible(folder, TRUE);
                 g_signal_connect(folder, "activate", G_CALLBACK(expanded), editor);
+
+                newdir->path = path;
+                newdir->label = folder;
+                newdir->open = FALSE;
             }
         }
         else {
-            GtkWidget * name = gtk_label_new(ent->d_name);
+
+            editor->filecount++;
+            editor->filesystem = reallocarray(editor->filesystem, editor->filecount, sizeof(struct File *));
+            struct File * newfile = malloc(sizeof(struct File));
+            editor->filesystem[editor->filecount - 1] = newfile;
+
+            char * path = malloc(strlen(ent->d_name) + strlen(directory) + 1 + 1);
             strcpy(path, directory);
             strcat(path, "/");
             strcat(path, ent->d_name);
-            gtk_widget_set_name(name, path);
+
+            GtkWidget * name = gtk_label_new(ent->d_name);
             gtk_label_set_xalign(GTK_LABEL(name), 0.0);
             gtk_list_box_insert(GTK_LIST_BOX(files), name, -1);
             gtk_widget_set_visible(name, TRUE);
+
+            newfile->path = path;
+            newfile->label = name;
+            newfile->open = FALSE;
         }
     }
     closedir (dir);
 
-    g_signal_connect(files, "row-selected", G_CALLBACK(selected), editor);
+    g_signal_connect(files, "row-activated", G_CALLBACK(selected), editor);
     gtk_widget_set_visible(files, TRUE);
 }
 

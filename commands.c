@@ -248,7 +248,6 @@ gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Editor * editor) 
 
 void kill_tab_n(struct Editor * editor, int x) {
     gtk_notebook_remove_page(editor->tabs, x);
-    gtk_widget_destroy((editor->pages[x])->modified);
 
     if (editor->pages[x] == editor->current) {
         editor->current = NULL;
