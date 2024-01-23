@@ -26,6 +26,7 @@ struct Document {
     GtkWidget * scrolled;
     GtkWidget * view;
     GtkWidget * modified;
+    char * path;
     GtkSourceSearchContext * context;
     enum Filetype type;
 };

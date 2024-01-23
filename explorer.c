@@ -19,25 +19,6 @@ void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {
     }
 }
 
-char * get_path(GtkWidget * self, struct Editor * editor) {
-    for (int i = 0; i < editor->filecount; i++) {
-        if (editor->filesystem[i]->label == self) {
-            return editor->filesystem[i]->path;
-        }
-    }
-    exit(-1);
-}
-
-void set_open(GtkWidget * self, struct Editor * editor) {
-    for (int i = 0; i < editor->filecount; i++) {
-        if (editor->filesystem[i]->label == self) {
-            editor->filesystem[i]->open = !editor->filesystem[i]->open;
-            return;
-        }
-    }
-    exit(-1);
-}
-
 void tab_selected(GtkNotebook * notebook, GtkWidget * page, gint num, struct Editor * editor) {
     for(int x = 0; x < editor->len; x++) {
         if((editor->pages[x])->scrolled == page) {
@@ -47,6 +28,15 @@ void tab_selected(GtkNotebook * notebook, GtkWidget * page, gint num, struct Edi
     }
 }
 
+struct File * get_file_from_path(char * path, struct Editor * editor) {
+    for (int i = 0; i < editor->filecount; i++) {
+        if (strcmp(editor->filesystem[i]->path, path) == 0) {
+            return editor->filesystem[i];
+        }
+    }
+    exit(-1);
+}
+
 void close_tab(GtkButton * close, struct Editor * editor) {
     GtkWidget * head = gtk_widget_get_parent(GTK_WIDGET(close));
     int x;
@@ -54,6 +44,9 @@ void close_tab(GtkButton * close, struct Editor * editor) {
         if(gtk_notebook_get_tab_label(editor->tabs, (editor->pages[x])->scrolled) == head)
             break;
     }
+    
+    struct File * datastruct = get_file_from_path(editor->pages[x]->path, editor);
+    datastruct->open = FALSE;
 
     kill_tab_n(editor, x);
 }
@@ -73,7 +66,10 @@ void newpage(struct Editor * editor, char * path) {
     GtkWidget * main;
 
     doc->window = editor->window;
-    doc->modified = gtk_image_new_from_icon_name("gtk-dialog-question", 2);;
+    doc->modified = gtk_image_new_from_icon_name("gtk-dialog-question", 2);
+
+    struct File * datastruct = get_file_from_path(path, editor);
+    doc->path = path;
 
     // Update main struct
     editor->current = doc;
@@ -195,13 +191,23 @@ void demolish(GtkExpander * self, struct Editor * editor) {
     gtk_widget_destroy(listbox);
 }
 
+struct File * get_file(GtkWidget * self, struct Editor * editor) {
+    for (int i = 0; i < editor->filecount; i++) {
+        if (editor->filesystem[i]->label == self) {
+            return editor->filesystem[i];
+        }
+    }
+    exit(-1);
+}
+
 void expanded(GtkExpander * self, struct Editor * editor) {
-    set_open(GTK_WIDGET(self), editor);
+    struct File * folder = get_file(GTK_WIDGET(self), editor);
+    folder->open = !folder->open;
     if (gtk_expander_get_expanded(self)) {
         demolish(self, editor);
     }
     else {
-        fill_expander(GTK_WIDGET(self), get_path(GTK_WIDGET(self), editor), editor);
+        fill_expander(GTK_WIDGET(self), folder->path, editor);
     }
 }
 
@@ -209,18 +215,11 @@ void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
 
     GtkWidget * widget = gtk_bin_get_child (GTK_BIN(row));
     if (GTK_IS_LABEL(widget)) {
-        for (int i = 0; i < editor->filecount; i++) {
-            if (editor->filesystem[i]->label == widget) {
-                if(editor->filesystem[i]->open)
-                    return;
-                else {
-                    editor->filesystem[i]->open = TRUE;
-                    newpage(editor, editor->filesystem[i]->path);
-                    return;
-                }
-            }
-        }
-        exit(-1);
+        struct File * file = get_file(widget, editor);
+        if (file->open)
+            return;
+        file->open = TRUE;
+        newpage(editor, file->path);
     }
 
 }
