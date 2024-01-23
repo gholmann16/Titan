@@ -1,7 +1,9 @@
 #define MAX_FILE 256
 
 struct Editor {
+    GtkWidget * sections;
     GtkNotebook * tabs;
+    GtkWidget * expander;
     GtkWindow * window;
     char * cwd;
     struct File ** filesystem;

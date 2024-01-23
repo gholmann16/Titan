@@ -80,6 +80,51 @@ void open_command(GtkWidget * self, struct Editor * editor) {
     gtk_widget_destroy (dialog);
 }
 
+void clear_editor(struct Editor * editor) {
+
+    demolish(GTK_EXPANDER(editor->expander), editor);
+    free(editor->filesystem);
+    editor->filesystem = NULL; //Necessary to avoid double free
+
+    gtk_widget_destroy(GTK_WIDGET(editor->tabs));
+    for (int j = 0; j < editor->len; j++) {
+        free(editor->pages[j]);
+    }
+    editor->len = 0;
+    
+    free(editor->pages);
+    editor->pages = NULL;
+    editor->current = NULL;
+
+    free(editor->cwd);
+    editor->cwd = NULL;
+}
+
+void open_folder_command(GtkWidget * self, struct Editor * editor) {
+
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
+    GtkWidget *dialog = gtk_file_chooser_dialog_new ("Open Folder", editor->window, action, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Open"), GTK_RESPONSE_ACCEPT, NULL);
+
+    gint res = gtk_dialog_run (GTK_DIALOG (dialog));
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        clear_editor(editor);
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+        editor->cwd = gtk_file_chooser_get_filename (chooser);
+
+        editor->tabs = GTK_NOTEBOOK(gtk_notebook_new());
+        gtk_notebook_set_scrollable(GTK_NOTEBOOK(editor->tabs), TRUE);
+        g_signal_connect(editor->tabs, "switch-page", G_CALLBACK(tab_selected), editor);
+        gtk_widget_set_visible(GTK_WIDGET(editor->tabs), TRUE);
+        gtk_box_pack_end(GTK_BOX(editor->sections), GTK_WIDGET(editor->tabs), 1, 1, 0);
+
+        fill_expander(editor->expander, editor->cwd, editor);
+    }
+
+    gtk_widget_destroy (dialog);
+
+}
+
 void new_command(void) {
     GError *err = NULL;
     char* argv[] = {"/proc/self/exe", NULL};

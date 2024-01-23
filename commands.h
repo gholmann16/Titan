@@ -4,6 +4,10 @@ int open_file(char * filename, struct Document ** document);
 
 void open_command(GtkWidget * self, struct Document ** document);
 
+void open_folder_command(GtkWidget * self, struct Editor * editor);
+
+void clear_editor(struct Editor * editor);
+
 void new_command(void);
 
 void save_command(GtkWidget * self, struct Document ** document);

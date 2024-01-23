@@ -3,6 +3,7 @@
 #include "commands.h"
 #include "menu.h"
 #include "explorer.h"
+#include <limits.h>
 
 int main(int argc, char * argv[]) {
 
@@ -32,13 +33,19 @@ int main(int argc, char * argv[]) {
     g_signal_connect(tabs, "switch-page", G_CALLBACK(tab_selected), &editor);
 
     // Current working directory
-    char cwd[MAX_FILE];
-    getcwd(cwd, MAX_FILE);
-    char * current = getenv("OWD") ?: cwd;
+    char * cwd;
+    if (getenv("OWD")) { //AppImage support
+        cwd = strdup(getenv("OWD"));
+    }
+    else {
+        char tmp[PATH_MAX];
+        getcwd(tmp, PATH_MAX);
+        cwd = strdup(tmp);
+    }
 
     // Editor initilization
     editor.tabs = GTK_NOTEBOOK(tabs);
-    editor.cwd = current;
+    editor.cwd = cwd;
     editor.len = 0;
     editor.window = GTK_WINDOW(window);
     editor.filesystem = NULL;
@@ -56,13 +63,11 @@ int main(int argc, char * argv[]) {
     GtkWidget * sections = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 3);
 
     // Explorer
-    GtkWidget * explorer = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    init_explorer(explorer, &editor);
+    init_explorer(sections, &editor);
 
     // Add boxes together
     gtk_box_pack_start(GTK_BOX(box), bar, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), sections, 1, 1, 0);
-    gtk_box_pack_start(GTK_BOX(sections), explorer, 0, 1, 0);
     gtk_box_pack_end(GTK_BOX(sections), tabs, 1, 1, 0);
 
     // Pack up app and run
@@ -85,9 +90,7 @@ int main(int argc, char * argv[]) {
     gtk_main();
     gtk_source_finalize();
 
-    for (int i = 0; i < editor.len; i++) {
-        free(editor.pages[i]);
-    }
-    free(editor.pages);
+    clear_editor(&editor);
+    
     return 0;
 }

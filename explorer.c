@@ -176,6 +176,7 @@ void demolish(GtkExpander * self, struct Editor * editor) {
         add = 1;
         while(cur) {
             if (gtk_bin_get_child(GTK_BIN(cur->data)) == editor->filesystem[i]->label) {
+                free(editor->filesystem[i]);
                 add = 0;
                 break;
             }
@@ -290,12 +291,15 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
     gtk_widget_set_visible(files, TRUE);
 }
 
-void init_explorer(GtkWidget * explorer, struct Editor * editor) {
+void init_explorer(GtkWidget * sections, struct Editor * editor) {
     GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(scrolled), 200);
-    gtk_box_pack_start(GTK_BOX(explorer), scrolled, 1, 1, 0);
+    gtk_box_pack_start(GTK_BOX(sections), scrolled, 0, 1, 0);
 
     GtkWidget * expander = gtk_expander_new("Code");
+    editor->expander = expander;
+    editor->sections = sections;
+
     gtk_expander_set_expanded(GTK_EXPANDER(expander), TRUE);
     fill_expander(expander, editor->cwd, editor);
     gtk_container_add(GTK_CONTAINER(scrolled), expander);

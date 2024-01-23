@@ -22,6 +22,11 @@ int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** documen
     g_signal_connect(open, "activate", G_CALLBACK(open_command), editor);
     gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), open);
 
+    GtkWidget * folder = gtk_menu_item_new_with_label("Open Folder");
+    gtk_widget_add_accelerator(folder, "activate", accel, GDK_KEY_K, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    g_signal_connect(folder, "activate", G_CALLBACK(open_folder_command), editor);
+    gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), folder);
+
     GtkWidget * save = gtk_menu_item_new_with_label("Save");
     gtk_widget_add_accelerator(save, "activate", accel, GDK_KEY_S, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
     g_signal_connect(save, "activate", G_CALLBACK(save_command), document);
