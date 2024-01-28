@@ -1,10 +1,6 @@
 INC_FLAGS := `pkg-config --cflags gtksourceview-4`
 CFLAGS := -c -g
 
-ifeq ($(RELEASE),yes)
-	CFLAGS := $(CFLAGS) -O3
-endif
-
 triton: commands.o menu.o main.o explorer.o
 	cc `pkg-config --libs gtksourceview-4` main.o commands.o menu.o explorer.o -o triton
 main.o: main.c
@@ -19,8 +15,11 @@ explorer.o: explorer.c
 clean:
 	rm *.o
 
-install: triton
+release: CFLAGS += -O3
+release: clean triton
 	strip triton
+
+install: release
 	install -d /usr/bin/
 	install triton /usr/bin/
 	install -d /usr/share/pixmaps/
@@ -38,6 +37,6 @@ appdir:
 	cp data/triton.desktop appdir/
 	cp data/triton.png appdir/triton.png
 
-appimage: triton appdir
+appimage: release appdir
 	mv triton appdir/AppRun
 	appimagetool appdir
