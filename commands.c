@@ -571,6 +571,16 @@ void go_to_command(GtkWidget * self, struct Document ** document) {
 
 }
 
+void theme_command(GtkWidget * self, struct Document ** document) {
+    if (*document == NULL) return;
+
+    const char * theme = gtk_menu_item_get_label(GTK_MENU_ITEM(self));
+    GtkSourceStyleSchemeManager * manager = gtk_source_style_scheme_manager_get_default();
+    GtkSourceStyleScheme * scheme = gtk_source_style_scheme_manager_get_scheme(manager, theme);
+
+    gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER((*document)->buffer), scheme);
+}
+
 void font_callback(GtkFontChooser * self, gchar * selected, struct Document ** document) {
     PangoFontDescription * description = pango_font_description_from_string(selected);
     // I don't want to use a deprecated feature, but for some reason gtk decided to deprecate literally every command that works with fonts

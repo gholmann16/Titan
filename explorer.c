@@ -100,7 +100,12 @@ void newpage(struct Editor * editor, char * path) {
         gtk_source_search_context_set_highlight(context, TRUE);
         gtk_source_buffer_set_language(GTK_SOURCE_BUFFER(buffer), language);
         gtk_source_search_settings_set_wrap_around(gtk_source_search_context_get_settings(context), TRUE);
-        
+        gtk_source_buffer_set_implicit_trailing_newline(GTK_SOURCE_BUFFER(buffer), FALSE);
+
+        GtkSourceStyleSchemeManager * scheme_manager = gtk_source_style_scheme_manager_get_default();
+        GtkSourceStyleScheme * scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, "solarized-light");
+        gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(buffer), scheme);
+
         doc->buffer = buffer;
         doc->view = text;
         doc->context = context;

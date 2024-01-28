@@ -48,6 +48,8 @@ void replace_command(GtkWidget * self, struct Document ** document);
 
 void go_to_command(GtkWidget * self, struct Document ** document);
 
+void theme_command(GtkWidget * self, struct Document ** document);
+
 void font_command(GtkWidget * self, struct Document ** document);
 
 void wrap_command(GtkWidget * self, struct Document ** document);

@@ -138,6 +138,29 @@ int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** documen
     g_signal_connect(go_to, "activate", G_CALLBACK(go_to_command), document);
     gtk_menu_shell_append(GTK_MENU_SHELL(searchmenu), go_to);
 
+    GtkWidget * view = gtk_menu_item_new_with_label("View");
+    gtk_menu_shell_append(GTK_MENU_SHELL(bar), view);
+
+    GtkWidget * viewmenu = gtk_menu_new();
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(view), viewmenu);
+
+    GtkWidget * theme = gtk_menu_item_new_with_label("Theme");
+    gtk_menu_shell_append(GTK_MENU_SHELL(viewmenu), theme);
+
+    GtkWidget * theme_submenu = gtk_menu_new();
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(theme), theme_submenu);
+
+    GtkSourceStyleSchemeManager * manager = gtk_source_style_scheme_manager_get_default();
+    const gchar* const* themes = gtk_source_style_scheme_manager_get_scheme_ids(manager);
+
+    int count = 0;
+    while(themes[count] != NULL) {
+        GtkWidget * current_theme = gtk_menu_item_new_with_label(themes[count]);
+        gtk_menu_shell_append(GTK_MENU_SHELL(theme_submenu), current_theme);
+        g_signal_connect(current_theme, "activate", G_CALLBACK(theme_command), document);
+        count++;
+    }
+
     GtkWidget * options = gtk_menu_item_new_with_label("Options");
     gtk_menu_shell_append(GTK_MENU_SHELL(bar), options);
 
