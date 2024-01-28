@@ -15,11 +15,21 @@ int main(int argc, char * argv[]) {
     gtk_source_init();
 
     GtkWidget * window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(window), "Triton");
     gtk_window_set_default_size(GTK_WINDOW(window), 1080, 840);
     g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), &editor);
 
     GError *error = NULL;
-    GdkPixbuf * icon = gdk_pixbuf_new_from_file("/usr/share/pixmaps/triton.png", &error);
+    GdkPixbuf * icon;
+    if (getenv("APPDIR")) {
+        char path[PATH_MAX];
+        strcpy(path, getenv("APPDIR"));
+        strcat(path, "/triton.png");
+        icon = gdk_pixbuf_new_from_file(path, &error);
+    }
+    else 
+        icon = gdk_pixbuf_new_from_file("/usr/share/pixmaps/triton.png", &error);
+
     if (error != NULL) {
         printf(error->message);
         g_clear_error (&error);
@@ -33,15 +43,9 @@ int main(int argc, char * argv[]) {
     g_signal_connect(tabs, "switch-page", G_CALLBACK(tab_selected), &editor);
 
     // Current working directory
-    char * cwd;
-    if (getenv("OWD")) { //AppImage support
-        cwd = strdup(getenv("OWD"));
-    }
-    else {
-        char tmp[PATH_MAX];
-        getcwd(tmp, PATH_MAX);
-        cwd = strdup(tmp);
-    }
+    char tmp[PATH_MAX];
+    getcwd(tmp, PATH_MAX);
+    char * cwd = strdup(tmp);
 
     // Editor initilization
     editor.tabs = GTK_NOTEBOOK(tabs);

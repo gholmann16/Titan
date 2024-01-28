@@ -24,23 +24,20 @@ install: triton
 	install -d /usr/bin/
 	install triton /usr/bin/
 	install -d /usr/share/pixmaps/
-	install assets/triton.png /usr/share/pixmaps/
+	install data/triton.png /usr/share/pixmaps/
 	install -d /usr/share/applications/
-	install release/triton.desktop /usr/share/applications/
+	install data/triton.desktop /usr/share/applications/
 
 uninstall:
 	rm /usr/bin/triton
 	rm /usr/share/pixmaps/triton.png
 	rm /usr/share/applications/triton.desktop
 
-appimage: triton
-	cc -O3 release/AppRun.c -o release/AppRun
-	strip release/AppRun
-	strip triton
-	mkdir -p release/usr/lib
-	mkdir -p release/usr/bin
-	mv triton release/usr/bin
-	cp assets/triton.png release
-	sed -i -e 's#/usr#././#g' release/usr/bin/triton
-	cp /usr/lib/libgtksourceview-4.so.0 release/usr/lib
-	appimagetool release
+appdir:
+	mkdir appdir
+	cp data/triton.desktop appdir/
+	cp data/triton.png appdir/triton.png
+
+appimage: triton appdir
+	mv triton appdir/AppRun
+	appimagetool appdir
