@@ -82,17 +82,21 @@ void open_command(GtkWidget * self, struct Editor * editor) {
 
 void clear_editor(struct Editor * editor) {
 
-    demolish(GTK_EXPANDER(editor->expander), editor);
+    gtk_widget_destroy(gtk_bin_get_child(GTK_BIN(editor->expander)));
+    for (int i = 0; i < editor->filecount; i++) {
+        free(editor->filesystem[i]);
+    }
     free(editor->filesystem);
+    editor->filecount = 0;
     editor->filesystem = NULL; //Necessary to avoid double free
 
     gtk_widget_destroy(GTK_WIDGET(editor->tabs));
     for (int j = 0; j < editor->len; j++) {
         free(editor->pages[j]);
     }
-    editor->len = 0;
     
     free(editor->pages);
+    editor->len = 0;
     editor->pages = NULL;
     editor->current = NULL;
 
@@ -289,30 +293,6 @@ void exit_command(GtkWidget * self, struct Editor * editor) {
 gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Editor * editor) {
     exit_command(self, editor);
     return TRUE;
-}
-
-void kill_tab_n(struct Editor * editor, int x) {
-    gtk_notebook_remove_page(editor->tabs, x);
-
-    if (editor->pages[x] == editor->current) {
-        editor->current = NULL;
-    }
-    free(editor->pages[x]);
-    
-    struct Document ** newpages = malloc(sizeof(struct Document *) * (editor->len - 1));
-
-    int z = 0;
-    for (int y = 0; y < editor->len; y++) {
-        if (x != y) {
-            newpages[z] = editor->pages[y];
-            z++;
-        }
-    }
-
-    free(editor->pages);
-
-    editor->pages = newpages;
-    editor->len = editor->len - 1;
 }
 
 void close_tab_command(GtkWidget * self, struct Editor * editor) {
