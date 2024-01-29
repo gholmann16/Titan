@@ -1,4 +1,5 @@
 #define MAX_FILE 256
+typedef _Bool bool;
 
 struct Editor {
     GtkWidget * sections;
@@ -28,11 +29,12 @@ struct Document {
     GtkWidget * modified;
     char * path;
     GtkSourceSearchContext * context;
+    GtkTextIter last;
     enum Filetype type;
 };
 
 struct File {
     char * path;
     GtkWidget * label;
-    char open;
+    bool open;
 };

@@ -1,7 +1,4 @@
 triton
 *.o
 *.AppImage
-AppRun
-libgtksourceview-4.so.0
-release/triton.png
 appdir

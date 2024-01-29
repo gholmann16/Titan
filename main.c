@@ -45,7 +45,8 @@ int main(int argc, char * argv[]) {
     // Current working directory
     char tmp[PATH_MAX];
     getcwd(tmp, PATH_MAX);
-    char * cwd = strdup(tmp);
+    char * cwd = malloc(strlen(tmp) + 1);
+    strcpy(cwd, tmp);
 
     // Editor initilization
     editor.tabs = GTK_NOTEBOOK(tabs);

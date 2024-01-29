@@ -97,7 +97,6 @@ void newpage(struct Editor * editor, char * path) {
 
         GtkSourceLanguage * language = gtk_source_language_manager_guess_language (manager, filename, content_type);
 
-        gtk_source_search_context_set_highlight(context, TRUE);
         gtk_source_buffer_set_language(GTK_SOURCE_BUFFER(buffer), language);
         gtk_source_search_settings_set_wrap_around(gtk_source_search_context_get_settings(context), TRUE);
         gtk_source_buffer_set_implicit_trailing_newline(GTK_SOURCE_BUFFER(buffer), FALSE);
