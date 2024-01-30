@@ -107,8 +107,22 @@ void newpage(struct Editor * editor, char * path) {
     doc->window = editor->window;
     doc->modified = gtk_image_new_from_icon_name("gtk-dialog-question", 2);
 
-    struct File * datastruct = get_file_from_path(path, editor);
-    doc->data = datastruct;
+    struct File * datastruct;
+    if (datastruct = get_file_from_path(path, editor)) {
+        doc->data = datastruct;
+    }    
+    else {
+        editor->filecount++;
+        editor->filesystem = reallocarray(editor->filesystem, editor->filecount, sizeof(struct File *));
+        struct File * newdir = malloc(sizeof(struct File));
+        editor->filesystem[editor->filecount - 1] = newdir;
+
+        newdir->path = path;
+        newdir->label = NULL;
+        newdir->open = TRUE;
+
+        doc->data = newdir;
+    }
 
     // Update main struct
     editor->current = doc;

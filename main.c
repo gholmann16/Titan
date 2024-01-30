@@ -4,6 +4,7 @@
 #include "menu.h"
 #include "explorer.h"
 #include <limits.h>
+#include <sys/stat.h>
 
 int main(int argc, char * argv[]) {
 
@@ -62,6 +63,23 @@ int main(int argc, char * argv[]) {
     editor.filecount = 0;
     editor.theme = theme;
 
+    // Command line
+    if (argc > 1) {
+        char full[4096];
+        realpath(argv[1], full);
+        struct stat buf;
+        if (stat(full, &buf) == -1)
+            printf("File %s does not exist\n", argv[1]);
+        else if (S_ISREG(buf.st_mode)) {
+            char * newpath = malloc(strlen(full) + 1);
+            strcpy(newpath, full);
+            newpage(&editor, full);
+        }
+        else if (S_ISDIR(buf.st_mode)) {
+            strcpy(editor.cwd, full);
+        }
+    }
+
     // Menu setup
     GtkAccelGroup * accel = gtk_accel_group_new();
     gtk_window_add_accel_group(GTK_WINDOW(window), accel);
@@ -84,19 +102,6 @@ int main(int argc, char * argv[]) {
     // Pack up app and run
     gtk_container_add(GTK_CONTAINER(window), box);
     gtk_widget_show_all (window);
-    /*
-    if (argc > 1) {
-        if (getenv("OWD") != NULL) {
-            strlcat(document.name, getenv("OWD"), sizeof(document.name));
-            strlcat(document.name, "/", sizeof(document.name));
-        }
-        strlcat(document.name, argv[1], sizeof(document.name));
-        if (access(document.name, F_OK) == 0) {
-            open_file(document.name, &document);
-            filename_to_title(&document);
-        }
-    }
-    */
 
     gtk_main();
     gtk_source_finalize();
