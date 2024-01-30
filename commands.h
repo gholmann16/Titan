@@ -48,7 +48,7 @@ void replace_command(GtkWidget * self, struct Document ** document);
 
 void go_to_command(GtkWidget * self, struct Document ** document);
 
-void theme_command(GtkWidget * self, struct Document ** document);
+void theme_command(GtkWidget * self, struct Editor * document);
 
 void font_command(GtkWidget * self, struct Document ** document);
 

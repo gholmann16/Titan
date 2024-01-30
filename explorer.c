@@ -141,7 +141,7 @@ void newpage(struct Editor * editor, char * path) {
         gtk_source_buffer_set_implicit_trailing_newline(GTK_SOURCE_BUFFER(buffer), FALSE);
 
         GtkSourceStyleSchemeManager * scheme_manager = gtk_source_style_scheme_manager_get_default();
-        GtkSourceStyleScheme * scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, "solarized-light");
+        GtkSourceStyleScheme * scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, editor->theme);
         gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(buffer), scheme);
 
         doc->buffer = buffer;

@@ -12,6 +12,7 @@ struct Editor {
     struct Document * current;
     struct Document ** pages;
     int len;
+    char * theme;
 };
 
 enum Filetype {

@@ -157,7 +157,7 @@ int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** documen
     while(themes[count] != NULL) {
         GtkWidget * current_theme = gtk_menu_item_new_with_label(themes[count]);
         gtk_menu_shell_append(GTK_MENU_SHELL(theme_submenu), current_theme);
-        g_signal_connect(current_theme, "activate", G_CALLBACK(theme_command), document);
+        g_signal_connect(current_theme, "activate", G_CALLBACK(theme_command), editor);
         count++;
     }
 

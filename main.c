@@ -48,6 +48,11 @@ int main(int argc, char * argv[]) {
     char * cwd = malloc(strlen(tmp) + 1);
     strcpy(cwd, tmp);
 
+    // Theme
+    char * default_theme = "solarized-light";
+    char * theme = malloc(strlen(default_theme) + 1);
+    strcpy(theme, default_theme);
+
     // Editor initilization
     editor.tabs = GTK_NOTEBOOK(tabs);
     editor.cwd = cwd;
@@ -55,6 +60,7 @@ int main(int argc, char * argv[]) {
     editor.window = GTK_WINDOW(window);
     editor.filesystem = NULL;
     editor.filecount = 0;
+    editor.theme = theme;
 
     // Menu setup
     GtkAccelGroup * accel = gtk_accel_group_new();
@@ -96,6 +102,7 @@ int main(int argc, char * argv[]) {
     gtk_source_finalize();
 
     clear_editor(&editor);
+    free(editor.theme);
     
     return 0;
 }

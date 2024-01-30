@@ -568,14 +568,18 @@ void go_to_command(GtkWidget * self, struct Document ** document) {
 
 }
 
-void theme_command(GtkWidget * self, struct Document ** document) {
-    if (*document == NULL) return;
-
+void theme_command(GtkWidget * self, struct Editor * editor) {
     const char * theme = gtk_menu_item_get_label(GTK_MENU_ITEM(self));
     GtkSourceStyleSchemeManager * manager = gtk_source_style_scheme_manager_get_default();
     GtkSourceStyleScheme * scheme = gtk_source_style_scheme_manager_get_scheme(manager, theme);
 
-    gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER((*document)->buffer), scheme);
+    for (int i = 0; i < editor->len; i++) {
+        gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(editor->pages[i]->buffer), scheme);
+    }
+
+    char * new = malloc(strlen(theme) + 1);
+    strcpy(new, theme);
+    editor->theme = new;
 }
 
 void font_callback(GtkFontChooser * self, gchar * selected, struct Document ** document) {
