@@ -50,7 +50,7 @@ int open_file(char * filename, struct Document ** document) {
         gtk_text_buffer_set_text((*document)->buffer, contents, wrote);
     }
     else {
-        (*document)->type = Binary;
+        (*document)->type = Text;
         gtk_text_buffer_set_text((*document)->buffer, contents, len);
     }
 
@@ -258,36 +258,43 @@ void print_preview_command(GtkWidget * self, struct Document ** document) {
 
 void exit_command(GtkWidget * self, struct Editor * editor) {
 
-    if(editor->current == NULL) {
+    if (editor->len == 0) {
         gtk_main_quit();
         return;
     }
 
-    if (gtk_text_buffer_get_modified(editor->current->buffer) == FALSE) {
-        gtk_main_quit();
-        return;
+    for(int i = 0; i < editor->len; i++) {
+        if (editor->pages[i]->type) {
+            continue;
+        }
+        else if (gtk_text_buffer_get_modified(editor->pages[i]->buffer) == TRUE) {
+            gtk_notebook_set_current_page(editor->tabs, i);
+
+            GtkWidget * close = gtk_dialog_new_with_buttons("Triton", editor->current->window, GTK_DIALOG_MODAL, "No", 0, "Cancel", 1, "Yes", 2, NULL);
+            GtkWidget * content = gtk_dialog_get_content_area(GTK_DIALOG(close));
+            GtkWidget * message = gtk_label_new("Would you like to save?");
+
+            gtk_container_add(GTK_CONTAINER(content), message);
+            gtk_widget_show_all(content);
+
+            int res = gtk_dialog_run (GTK_DIALOG (close));
+            gtk_widget_destroy (close);
+
+            switch (res) {
+                case 0:
+                    continue;
+                case 1:
+                    return;
+                case 2:
+                    save_command(GTK_WIDGET(self), &(editor->current));
+                    continue;
+            }
+        }
     }
 
-    GtkWidget * close = gtk_dialog_new_with_buttons("Triton", editor->current->window, GTK_DIALOG_MODAL, "No", 0, "Cancel", 1, "Yes", 2, NULL);
-    GtkWidget * content = gtk_dialog_get_content_area(GTK_DIALOG(close));
-    GtkWidget * message = gtk_label_new("Would you like to save?");
+    gtk_main_quit();
+    return;
 
-    gtk_container_add(GTK_CONTAINER(content), message);
-    gtk_widget_show_all(content);
-
-    int res = gtk_dialog_run (GTK_DIALOG (close));
-    gtk_widget_destroy (close);
-
-    switch (res) {
-        case 0:
-            gtk_main_quit();
-            break;
-        case 1:
-            return;
-        case 2:
-            save_command(GTK_WIDGET(self), &(editor->current));
-            break;
-    }
 }
 
 gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Editor * editor) {

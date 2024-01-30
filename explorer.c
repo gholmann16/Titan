@@ -20,10 +20,14 @@ void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {
 }
 
 void tab_selected(GtkNotebook * notebook, GtkWidget * page, gint num, struct Editor * editor) {
-    for(int x = 0; x < editor->len; x++) {
-        if((editor->pages[x])->scrolled == page) {
-            editor->current = editor->pages[x];
-            return;
+    editor->current = editor->pages[num];
+    if (!editor->current->type) {
+        filename_to_title(&editor->pages[num]);
+        if (gtk_text_buffer_get_modified(editor->pages[num]->buffer)) {
+            const char * current = gtk_window_get_title(editor->window);
+            char newtitle [MAX_FILE + 11] = "* ";
+            strcat(newtitle, current);
+            gtk_window_set_title(editor->window, newtitle);
         }
     }
 }
@@ -165,6 +169,7 @@ void newpage(struct Editor * editor, char * path) {
     gtk_widget_show(label);
     gtk_widget_show(close);
 
+    gtk_box_pack_start(GTK_BOX(box), doc->modified, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), label, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), close, 0, 0, 0);
 
