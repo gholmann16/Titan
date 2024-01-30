@@ -28,7 +28,7 @@ struct Document {
     GtkWidget * scrolled;
     GtkWidget * view;
     GtkWidget * modified;
-    char * path;
+    struct File * data;
     GtkSourceSearchContext * context;
     GtkTextIter last;
     enum Filetype type;

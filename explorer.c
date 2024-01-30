@@ -53,7 +53,7 @@ struct File * get_file(GtkWidget * self, struct Editor * editor) {
 void kill_tab_n(struct Editor * editor, int x) {
     gtk_notebook_remove_page(editor->tabs, x);
 
-    struct File * datastruct = get_file_from_path(editor->pages[x]->path, editor);
+    struct File * datastruct = editor->pages[x]->data;
     datastruct->open = FALSE;
     if (editor->pages[x] == editor->current) {
         editor->current = NULL;
@@ -108,7 +108,7 @@ void newpage(struct Editor * editor, char * path) {
     doc->modified = gtk_image_new_from_icon_name("gtk-dialog-question", 2);
 
     struct File * datastruct = get_file_from_path(path, editor);
-    doc->path = path;
+    doc->data = datastruct;
 
     // Update main struct
     editor->current = doc;
@@ -261,8 +261,15 @@ void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
     GtkWidget * widget = gtk_bin_get_child (GTK_BIN(row));
     if (GTK_IS_LABEL(widget)) {
         struct File * file = get_file(widget, editor);
-        if (file->open)
+        if (file->open) {
+            for (int i = 0; i < editor->len; i++) {
+                if (editor->pages[i]->data == file) {
+                    gtk_notebook_set_current_page(editor->tabs, i);
+                    break;
+                }
+            }
             return;
+        }
         file->open = TRUE;
         newpage(editor, file->path);
     }
