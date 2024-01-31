@@ -84,6 +84,7 @@ void clear_editor(struct Editor * editor) {
 
     gtk_widget_destroy(gtk_bin_get_child(GTK_BIN(editor->expander)));
     for (int i = 0; i < editor->filecount; i++) {
+        free(editor->filesystem[i]->path);
         free(editor->filesystem[i]);
     }
     free(editor->filesystem);
@@ -586,7 +587,14 @@ void font_callback(GtkFontChooser * self, gchar * selected, struct Document ** d
     PangoFontDescription * description = pango_font_description_from_string(selected);
     // I don't want to use a deprecated feature, but for some reason gtk decided to deprecate literally every command that works with fonts
     // There is still a way to override them using css, but its messy, and I don't know how consistently it would work with this output
-    gtk_widget_override_font((*document)->view, description);
+    GtkCssProvider * cssProvider = gtk_css_provider_new();
+    char * css = g_strdup_printf ("textview { font: %dpt %s; }", pango_font_description_get_size (description) / PANGO_SCALE, pango_font_description_get_family (description));
+    gtk_css_provider_load_from_data (cssProvider, css, -1, NULL);
+    GtkStyleContext * context = gtk_widget_get_style_context((*document)->view);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(cssProvider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+    pango_font_description_free(description);
+    free(css);
 }
 
 void font_command(GtkWidget * self, struct Document ** document) {
