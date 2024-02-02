@@ -1,23 +1,25 @@
-INC_FLAGS := `pkg-config --cflags gtksourceview-4`
-CFLAGS := -c -g
+SOURCES := $(wildcard *.c)
+OBJECTS := $(patsubst %.c,%.o,$(SOURCES))
 
-triton: commands.o menu.o main.o explorer.o
-	cc `pkg-config --libs gtksourceview-4` main.o commands.o menu.o explorer.o -o triton
-main.o: main.c
-	cc main.c $(CFLAGS) $(INC_FLAGS)
-commands.o: commands.c
-	cc commands.c $(CFLAGS) $(INC_FLAGS)
-menu.o: menu.c
-	cc menu.c $(CFLAGS) $(INC_FLAGS)
-explorer.o: explorer.c
-	cc explorer.c $(CFLAGS) $(INC_FLAGS)
+CFLAGS := `pkg-config --cflags gtksourceview-4`
+LDLIBS := `pkg-config --libs gtksourceview-4`
 
-clean:
-	rm *.o
+debug: CFLAGS += -g -Og
+debug: triton
 
 release: CFLAGS += -O3
-release: clean triton
-	strip triton
+release: triton
+	strip $<
+
+triton: $(OBJECTS)
+	$(CC) $(LDLIBS) $(LDFLAGS) $^ -o $@
+%.o: %.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
+
+clean:
+	rm -f *.o
+distclean: clean
+	rm -f triton
 
 install: release
 	install -d /usr/bin/
