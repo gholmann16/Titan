@@ -9,3 +9,5 @@ void newpage(struct Editor * editor, char * path);
 void demolish(GtkExpander * self, struct Editor * editor);
 
 void fill_expander(GtkWidget * expander, char * directory, struct Editor * editor);
+
+void open_explorer(struct Editor * editor, char * directory);

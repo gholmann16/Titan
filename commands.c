@@ -82,7 +82,10 @@ void open_command(GtkWidget * self, struct Editor * editor) {
 
 void clear_editor(struct Editor * editor) {
 
-    gtk_widget_destroy(gtk_bin_get_child(GTK_BIN(editor->expander)));
+    GtkWidget * filelist = gtk_bin_get_child(GTK_BIN(editor->expander));
+    if (GTK_IS_WIDGET(filelist))
+        gtk_widget_destroy(filelist);
+
     for (int i = 0; i < editor->filecount; i++) {
         free(editor->filesystem[i]->path);
         free(editor->filesystem[i]);
@@ -101,8 +104,6 @@ void clear_editor(struct Editor * editor) {
     editor->pages = NULL;
     editor->current = NULL;
 
-    free(editor->cwd);
-    editor->cwd = NULL;
 }
 
 void open_folder_command(GtkWidget * self, struct Editor * editor) {
@@ -115,7 +116,6 @@ void open_folder_command(GtkWidget * self, struct Editor * editor) {
     {
         clear_editor(editor);
         GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-        editor->cwd = gtk_file_chooser_get_filename (chooser);
 
         editor->tabs = GTK_NOTEBOOK(gtk_notebook_new());
         gtk_notebook_set_scrollable(GTK_NOTEBOOK(editor->tabs), TRUE);
@@ -123,7 +123,9 @@ void open_folder_command(GtkWidget * self, struct Editor * editor) {
         gtk_widget_set_visible(GTK_WIDGET(editor->tabs), TRUE);
         gtk_box_pack_end(GTK_BOX(editor->sections), GTK_WIDGET(editor->tabs), 1, 1, 0);
 
-        fill_expander(editor->expander, editor->cwd, editor);
+        char * dirname = gtk_file_chooser_get_filename (chooser);
+        open_explorer(editor);
+        free(dirname);
     }
 
     gtk_widget_destroy (dialog);

@@ -263,9 +263,9 @@ void expanded(GtkExpander * self, struct Editor * editor) {
     struct File * folder = get_file(GTK_WIDGET(self), editor);
     if (gtk_expander_get_expanded(self)) {
         demolish(self, editor);
+        folder->open = TRUE; //Set value to the incorrect one so that selected callback works
     }
     else {
-        folder->open = TRUE;
         fill_expander(GTK_WIDGET(self), folder->path, editor);
     }
 }
@@ -273,8 +273,8 @@ void expanded(GtkExpander * self, struct Editor * editor) {
 void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
 
     GtkWidget * widget = gtk_bin_get_child (GTK_BIN(row));
+    struct File * file = get_file(widget, editor);
     if (GTK_IS_LABEL(widget)) {
-        struct File * file = get_file(widget, editor);
         if (file->open) {
             for (int i = 0; i < editor->len; i++) {
                 if (editor->pages[i]->data == file) {
@@ -286,6 +286,15 @@ void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
         }
         file->open = TRUE;
         newpage(editor, file->path);
+    }
+    else if GTK_IS_EXPANDER(widget) {
+        if (file->open != gtk_expander_get_expanded(GTK_EXPANDER(widget))) { //expanded callback just called
+            file->open = !file->open;
+        }
+        else { //Manual
+            gtk_expander_set_expanded(GTK_EXPANDER(widget), !file->open);
+            file->open = !file->open;
+        }
     }
 
 }
@@ -362,6 +371,11 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
     gtk_widget_set_visible(files, TRUE);
 }
 
+void open_explorer(struct Editor * editor, char * directory) {
+    gtk_expander_set_expanded(GTK_EXPANDER(editor->expander), TRUE);
+    fill_expander(editor->expander, directory, editor);
+}
+
 void init_explorer(GtkWidget * sections, struct Editor * editor) {
     GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(scrolled), 200);
@@ -371,7 +385,5 @@ void init_explorer(GtkWidget * sections, struct Editor * editor) {
     editor->expander = expander;
     editor->sections = sections;
 
-    gtk_expander_set_expanded(GTK_EXPANDER(expander), TRUE);
-    fill_expander(expander, editor->cwd, editor);
     gtk_container_add(GTK_CONTAINER(scrolled), expander);
 }

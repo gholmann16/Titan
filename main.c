@@ -43,12 +43,6 @@ int main(int argc, char * argv[]) {
     gtk_notebook_set_scrollable(GTK_NOTEBOOK(tabs), TRUE);
     g_signal_connect(tabs, "switch-page", G_CALLBACK(tab_selected), &editor);
 
-    // Current working directory
-    char tmp[PATH_MAX];
-    getcwd(tmp, PATH_MAX);
-    char * cwd = malloc(strlen(tmp) + 1);
-    strcpy(cwd, tmp);
-
     // Theme
     char * default_theme = "solarized-light";
     char * theme = malloc(strlen(default_theme) + 1);
@@ -56,29 +50,11 @@ int main(int argc, char * argv[]) {
 
     // Editor initilization
     editor.tabs = GTK_NOTEBOOK(tabs);
-    editor.cwd = cwd;
     editor.len = 0;
     editor.window = GTK_WINDOW(window);
     editor.filesystem = NULL;
     editor.filecount = 0;
     editor.theme = theme;
-
-    // Command line
-    if (argc > 1) {
-        char full[4096];
-        realpath(argv[1], full);
-        struct stat buf;
-        if (stat(full, &buf) == -1)
-            printf("File %s does not exist\n", argv[1]);
-        else if (S_ISREG(buf.st_mode)) {
-            char * newpath = malloc(strlen(full) + 1);
-            strcpy(newpath, full);
-            newpage(&editor, full);
-        }
-        else if (S_ISDIR(buf.st_mode)) {
-            strcpy(editor.cwd, full);
-        }
-    }
 
     // Menu setup
     GtkAccelGroup * accel = gtk_accel_group_new();
@@ -102,6 +78,23 @@ int main(int argc, char * argv[]) {
     // Pack up app and run
     gtk_container_add(GTK_CONTAINER(window), box);
     gtk_widget_show_all (window);
+
+    // Command line
+    if (argc > 1) {
+        char full[4096];
+        realpath(argv[1], full);
+        struct stat buf;
+        if (stat(full, &buf) == -1)
+            printf("File %s does not exist\n", argv[1]);
+        else if (S_ISREG(buf.st_mode)) {
+            char * newpath = malloc(strlen(full) + 1);
+            strcpy(newpath, full);
+            newpage(&editor, newpath);
+        }
+        else if (S_ISDIR(buf.st_mode)) {
+            open_explorer(&editor, full);
+        }
+    }
 
     gtk_main();
     gtk_source_finalize();

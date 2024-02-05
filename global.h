@@ -6,7 +6,6 @@ struct Editor {
     GtkNotebook * tabs;
     GtkWidget * expander;
     GtkWindow * window;
-    char * cwd;
     struct File ** filesystem;
     int filecount;
     struct Document * current;
