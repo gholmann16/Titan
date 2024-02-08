@@ -12,10 +12,21 @@ int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** documen
     GtkWidget * filemenu = gtk_menu_new();
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(file), filemenu);
 
-    GtkWidget * new = gtk_menu_item_new_with_label("New");
-    gtk_widget_add_accelerator(new, "activate", accel, GDK_KEY_N, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
-    g_signal_connect(new, "activate", G_CALLBACK(new_command), document);
+    GtkWidget * newfile = gtk_menu_item_new_with_label("New File");
+    gtk_widget_add_accelerator(newfile, "activate", accel, GDK_KEY_N, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    g_signal_connect(newfile, "activate", G_CALLBACK(new_file_command), editor);
+    gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), newfile);
+
+    GtkWidget * newfolder = gtk_menu_item_new_with_label("New Folder");
+    g_signal_connect(newfolder, "activate", G_CALLBACK(new_folder_command), editor);
+    gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), newfolder);
+
+    GtkWidget * new = gtk_menu_item_new_with_label("New Window");
+    g_signal_connect(new, "activate", G_CALLBACK(new_command), NULL);
     gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), new);
+
+    GtkWidget * seperate0 = gtk_separator_menu_item_new();
+    gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), seperate0);
 
     GtkWidget * open = gtk_menu_item_new_with_label("Open");
     gtk_widget_add_accelerator(open, "activate", accel, GDK_KEY_O, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);

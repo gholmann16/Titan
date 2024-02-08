@@ -19,10 +19,21 @@ void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {
     }
 }
 
+void filename_to_title(struct Document * document) {
+    char title[MAX_FILE + 9];
+    char * p = document->name;
+    if (strrchr(document->name, '/') != NULL) {
+        p = strrchr(document->name, '/') + 1;
+    }
+    strcpy(title, p);
+    strcat(title, " - Triton");
+    gtk_window_set_title(document->window, title);
+}
+
 void tab_selected(GtkNotebook * notebook, GtkWidget * page, gint num, struct Editor * editor) {
     editor->current = editor->pages[num];
     if (!editor->current->type) {
-        filename_to_title(&editor->pages[num]);
+        filename_to_title(editor->pages[num]);
         if (gtk_text_buffer_get_modified(editor->pages[num]->buffer)) {
             const char * current = gtk_window_get_title(editor->window);
             char newtitle [MAX_FILE + 11] = "* ";
@@ -54,11 +65,12 @@ void kill_tab_n(struct Editor * editor, int x) {
     gtk_notebook_remove_page(editor->tabs, x);
 
     struct File * datastruct = editor->pages[x]->data;
-    datastruct->open = FALSE;
+    if (datastruct)
+        datastruct->open = FALSE;
+
     if (editor->pages[x] == editor->current) {
         editor->current = NULL;
     }
-
     free(editor->pages[x]);
     
     struct Document ** newpages = malloc(sizeof(struct Document *) * (editor->len - 1));
@@ -75,8 +87,6 @@ void kill_tab_n(struct Editor * editor, int x) {
 
     editor->pages = newpages;
     editor->len = editor->len - 1;
-
-
 }
 
 void close_tab(GtkButton * close, struct Editor * editor) {
@@ -90,105 +100,161 @@ void close_tab(GtkButton * close, struct Editor * editor) {
     kill_tab_n(editor, x);
 }
 
+void init_text_view(struct Document * doc, struct Editor * editor) {
+    GtkWidget * text = gtk_source_view_new();
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text), GTK_WRAP_NONE);
+    gtk_text_view_set_monospace(GTK_TEXT_VIEW(text), TRUE);
+    gtk_source_view_set_insert_spaces_instead_of_tabs(GTK_SOURCE_VIEW(text), TRUE);
+    gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(text), 4);
+    gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text), TRUE);
+    
+    doc->scrolled = gtk_scrolled_window_new(NULL, NULL);
+    gtk_container_add(GTK_CONTAINER(doc->scrolled), text);
+
+    GtkTextBuffer * buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
+    GtkSourceSearchContext * context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), NULL);
+
+    gtk_source_search_settings_set_wrap_around(gtk_source_search_context_get_settings(context), TRUE);
+    gtk_source_buffer_set_implicit_trailing_newline(GTK_SOURCE_BUFFER(buffer), FALSE);
+
+    GtkSourceStyleSchemeManager * scheme_manager = gtk_source_style_scheme_manager_get_default();
+    GtkSourceStyleScheme * scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, editor->theme);
+    gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(buffer), scheme);
+
+    doc->buffer = buffer;
+    doc->view = text;
+    doc->context = context;
+}
+
 void newpage(struct Editor * editor, char * path) {
 
-    char * filename = strrchr(path, '/') + 1;
-
-    struct Document * doc = malloc(sizeof(struct Document));    
-    strcpy(doc->name, filename);
+    struct Document * doc = malloc(sizeof(struct Document));
 
     editor->len++;
     editor->pages = reallocarray(editor->pages, editor->len, sizeof(struct Document *));
     editor->pages[editor->len - 1] = doc;
 
-    gchar * content_type = g_content_type_guess(filename, NULL, 0, NULL);
-    GtkWidget * main;
-
     doc->window = editor->window;
     doc->modified = gtk_image_new_from_icon_name("gtk-dialog-question", 2);
 
-    struct File * datastruct;
-    if (datastruct = get_file_from_path(path, editor)) {
-        doc->data = datastruct;
-    }    
-    else {
-        editor->filecount++;
-        editor->filesystem = reallocarray(editor->filesystem, editor->filecount, sizeof(struct File *));
-        struct File * newdir = malloc(sizeof(struct File));
-        editor->filesystem[editor->filecount - 1] = newdir;
-
-        newdir->path = path;
-        newdir->label = NULL;
-        newdir->open = TRUE;
-
-        doc->data = newdir;
-    }
-
-    // Update main struct
-    editor->current = doc;
-
-    if(strncmp(content_type, "image", 5) == 0) {
-        main = gtk_image_new_from_file (path);
-        doc->type = Image;
-        doc->scrolled = main;
-    }
-    else {
-        GtkWidget * text = gtk_source_view_new();
-        gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text), GTK_WRAP_NONE);
-        gtk_text_view_set_monospace(GTK_TEXT_VIEW(text), TRUE);
-        gtk_source_view_set_insert_spaces_instead_of_tabs(GTK_SOURCE_VIEW(text), TRUE);
-        gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(text), 4);
-        gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text), TRUE);
-        
-        main = gtk_scrolled_window_new(NULL, NULL);
-        gtk_container_add(GTK_CONTAINER(main), text);
-
-        GtkTextBuffer * buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
-
-        GtkSourceSearchContext * context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), NULL);
-        GtkSourceLanguageManager * manager = gtk_source_language_manager_get_default();
-
-        GtkSourceLanguage * language = gtk_source_language_manager_guess_language (manager, filename, content_type);
-
-        gtk_source_buffer_set_language(GTK_SOURCE_BUFFER(buffer), language);
-        gtk_source_search_settings_set_wrap_around(gtk_source_search_context_get_settings(context), TRUE);
-        gtk_source_buffer_set_implicit_trailing_newline(GTK_SOURCE_BUFFER(buffer), FALSE);
-
-        GtkSourceStyleSchemeManager * scheme_manager = gtk_source_style_scheme_manager_get_default();
-        GtkSourceStyleScheme * scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, editor->theme);
-        gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(buffer), scheme);
-
-        doc->buffer = buffer;
-        doc->view = text;
-        doc->context = context;
-        doc->scrolled = main;
-
-        open_file(path, &editor->current);
-    }
-
-    g_free(content_type);
-    gtk_widget_show_all(main);
+    char * filename = NULL;
+    gchar * contents = NULL;
+    gsize len = 0;
+    gchar * content_type = NULL;
     
-    if (doc->type == Text) {
-        g_signal_connect(doc->buffer, "modified-changed", G_CALLBACK(change_indicator), editor);
+    if (path) {
+        filename = strrchr(path, '/') + 1;
+        strcpy(doc->name, filename);
+
+        struct File * datastruct;
+
+        if (datastruct = get_file_from_path(path, editor)) {
+            doc->data = datastruct;
+            if (path != datastruct->path)
+                free(path);
+        }
+        else {
+            editor->filecount++;
+            editor->filesystem = reallocarray(editor->filesystem, editor->filecount, sizeof(struct File *));
+            struct File * newdir = malloc(sizeof(struct File));
+            editor->filesystem[editor->filecount - 1] = newdir;
+
+            newdir->path = path;
+            newdir->label = NULL;
+            newdir->open = TRUE;
+
+            doc->data = newdir;
+            datastruct = newdir;
+        }
+
+        if (!g_file_get_contents(datastruct->path, &contents, &len, NULL)) {
+            puts("File system error, exiting.");
+            exit(-1);
+        }
+        content_type = g_content_type_guess(NULL, contents, len, NULL);
+        
+        if(content_type != NULL && !strncmp(content_type, "image", 5)) 
+            doc->type = Image;
+        else if (g_utf8_validate(contents, len, NULL) == FALSE)
+            doc->type = Binary;
+        else 
+            doc->type = Text;
     }
+    else {
+        doc->name[0] = 0;
+        doc->data = NULL;
+        doc->type = Text;
+    }
+
+    switch (doc->type) {
+
+        case Text:
+            init_text_view(doc, editor);
+            if (!GTK_IS_SCROLLED_WINDOW(doc->scrolled)) {
+                exit(-1);
+            }
+
+            if (contents) {
+                gtk_text_buffer_set_text(doc->buffer, contents, len);
+                GtkSourceLanguageManager * manager = gtk_source_language_manager_get_default();
+                GtkSourceLanguage * language = gtk_source_language_manager_guess_language (manager, NULL, content_type);
+                gtk_source_buffer_set_language(GTK_SOURCE_BUFFER(doc->buffer), language);
+            }
+
+            gtk_text_buffer_set_modified(doc->buffer, FALSE);
+            filename_to_title(doc);
+            g_signal_connect(doc->buffer, "modified-changed", G_CALLBACK(change_indicator), editor);
+            break;
+
+        case Binary:
+            init_text_view(doc, editor);
+            gsize read;
+            gsize wrote;
+
+            char * new = g_convert(contents, len, "UTF-8", "ISO-8859-15", &read, &wrote, NULL);
+            free(contents);
+            contents = malloc(wrote);
+            for (gsize x = 0; x < wrote; x++) {
+                if(new[x] != 0) {
+                    contents[x] = new[x];
+                }
+                else {
+                    contents[x] = ' ';
+                }
+            }
+            free(new);
+            gtk_text_buffer_set_text(doc->buffer, contents, wrote);
+            gtk_text_buffer_set_modified(doc->buffer, FALSE);
+            filename_to_title(doc);
+            g_signal_connect(doc->buffer, "modified-changed", G_CALLBACK(change_indicator), editor);
+            break;
+
+        case Image:
+            doc->scrolled = gtk_image_new_from_file (path);
+            break;
+
+    }
+
+    free(contents);
+    g_free(content_type);
 
     GtkWidget * box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    GtkWidget * label = gtk_label_new(filename);
+    GtkWidget * label = gtk_label_new(doc->name);
     GtkWidget * close = gtk_button_new_from_icon_name("window-close", 2);
 
     gtk_button_set_relief(GTK_BUTTON(close), GTK_RELIEF_NONE);
     g_signal_connect(close, "clicked", G_CALLBACK(close_tab), editor);
 
-    gtk_widget_show(label);
-    gtk_widget_show(close);
-
     gtk_box_pack_start(GTK_BOX(box), doc->modified, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), label, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), close, 0, 0, 0);
 
-    gtk_notebook_append_page(editor->tabs, main, box);
-    gtk_notebook_set_current_page(editor->tabs, gtk_notebook_page_num(editor->tabs, main));
+    gtk_widget_show(close);
+    gtk_widget_show(label);
+    gtk_widget_show_all(doc->scrolled);
+
+    gtk_notebook_append_page(editor->tabs, doc->scrolled, box);
+    gtk_notebook_set_current_page(editor->tabs, gtk_notebook_page_num(editor->tabs, doc->scrolled));
 
 }
 
@@ -373,7 +439,9 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
 
 void open_explorer(struct Editor * editor, char * directory) {
     gtk_expander_set_expanded(GTK_EXPANDER(editor->expander), TRUE);
+    strcpy(editor->dir, directory);
     fill_expander(editor->expander, directory, editor);
+
 }
 
 void init_explorer(GtkWidget * sections, struct Editor * editor) {

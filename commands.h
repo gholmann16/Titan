@@ -1,7 +1,3 @@
-void filename_to_title(struct Document ** document);
-
-int open_file(char * filename, struct Document ** document);
-
 void open_command(GtkWidget * self, struct Document ** document);
 
 void open_folder_command(GtkWidget * self, struct Editor * editor);
@@ -10,6 +6,10 @@ void clear_editor(struct Editor * editor);
 
 void new_command(void);
 
+void new_file_command(GtkWidget * self, struct Editor * editor);
+
+void new_folder_command(GtkWidget * self, struct Editor * editor);
+
 void save_command(GtkWidget * self, struct Document ** document);
 
 void save_as_command(GtkWidget * self, struct Document ** document);
@@ -17,8 +17,6 @@ void save_as_command(GtkWidget * self, struct Document ** document);
 void print_command(GtkWidget * self, struct Document ** document);
 
 void print_preview_command(GtkWidget * self, struct Document ** document);
-
-void kill_tab_n(struct Editor * editor, int x);
 
 void close_tab_command(GtkWidget * self, struct Editor * editor);
 

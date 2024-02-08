@@ -1,67 +1,7 @@
 #include <gtksourceview/gtksource.h>
+#include <sys/stat.h>
 #include "global.h"
 #include "explorer.h"
-
-void filename_to_title(struct Document ** document) {
-    char title[MAX_FILE + 9];
-    char * p = (*document)->name;
-    if (strrchr((*document)->name, '/') != NULL) {
-        p = strrchr((*document)->name, '/') + 1;
-    }
-    strncpy(title, p, sizeof(title));
-    strcat(title, " - Triton");
-    gtk_window_set_title((*document)->window, title);
-}
-
-int open_file(char * filename, struct Document ** document) {
-    
-    // Get file
-    FILE * f = fopen(filename, "r");
-    char * contents;
-    size_t len;
-
-    fseek(f, 0L, SEEK_END);
-    len = ftell(f);
-    
-    fseek(f, 0L, SEEK_SET);
-    contents = (char*)malloc(len + 1);	
-    contents[len] = 0;
-    
-    fread(contents, sizeof(char), len, f);
-    fclose(f);
-
-    if (g_utf8_validate(contents, len, NULL) == FALSE) {
-        (*document)->type = Binary;
-        gsize read;
-        gsize wrote;
-
-        char * new = g_convert(contents, len, "UTF-8", "ISO-8859-15", &read, &wrote, NULL);
-        free(contents);
-        contents = malloc(wrote);
-        for (gsize x = 0; x < wrote; x++) {
-            if(new[x] != 0) {
-                contents[x] = new[x];
-            }
-            else {
-                contents[x] = ' ';
-            }
-        }
-        free(new);
-        gtk_text_buffer_set_text((*document)->buffer, contents, wrote);
-    }
-    else {
-        (*document)->type = Text;
-        gtk_text_buffer_set_text((*document)->buffer, contents, len);
-    }
-
-    // Update edtior
-    gtk_text_buffer_set_modified((*document)->buffer, FALSE);
-    strcpy((*document)->name, filename);
-    filename_to_title(document);
-    free(contents);
-    
-    return 0;
-}
 
 void open_command(GtkWidget * self, struct Editor * editor) {
     
@@ -74,7 +14,6 @@ void open_command(GtkWidget * self, struct Editor * editor) {
         GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
         char * filename = gtk_file_chooser_get_filename (chooser);
         newpage(editor, filename);
-        g_free (filename);
     }
 
     gtk_widget_destroy (dialog);
@@ -115,7 +54,6 @@ void open_folder_command(GtkWidget * self, struct Editor * editor) {
     if (res == GTK_RESPONSE_ACCEPT)
     {
         clear_editor(editor);
-        GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
 
         editor->tabs = GTK_NOTEBOOK(gtk_notebook_new());
         gtk_notebook_set_scrollable(GTK_NOTEBOOK(editor->tabs), TRUE);
@@ -123,8 +61,8 @@ void open_folder_command(GtkWidget * self, struct Editor * editor) {
         gtk_widget_set_visible(GTK_WIDGET(editor->tabs), TRUE);
         gtk_box_pack_end(GTK_BOX(editor->sections), GTK_WIDGET(editor->tabs), 1, 1, 0);
 
-        char * dirname = gtk_file_chooser_get_filename (chooser);
-        open_explorer(editor);
+        char * dirname = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+        open_explorer(editor, dirname);
         free(dirname);
     }
 
@@ -142,6 +80,39 @@ void new_command(void) {
     }
 }
 
+void new_file_command(GtkWidget * self, struct Editor * editor) {
+    if (!strlen(editor->dir))
+        return;
+    newpage(editor, NULL);
+}
+
+void new_folder_command(GtkWidget * self, struct Editor * editor) {
+    if (!strlen(editor->dir))
+        return;
+    GtkWidget *dialog = gtk_file_chooser_dialog_new ("Open Folder", editor->window, GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Open"), GTK_RESPONSE_ACCEPT, NULL);
+    gint res = gtk_dialog_run (GTK_DIALOG (dialog));
+
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        char * dirname = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+        if (strlen(editor->dir) + strlen(dirname) + 1 >= PATH_MAX || strlen(dirname) + 1 >= MAX_FILE) {
+            puts("The name of your directory is too long.");
+            free(dirname);
+            gtk_widget_destroy(dialog);
+            return;
+        }
+        char fullpath[PATH_MAX];
+        strcpy(fullpath, editor->dir);
+        strcat(fullpath, "/");
+        strcat(fullpath, dirname);
+
+        mkdir(fullpath, 0755);
+        
+        free(dirname);
+    }
+    gtk_widget_destroy (dialog);
+}
+
 void read_only_popup(struct Document ** document) {
     GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
     GtkWidget * dialog = gtk_message_dialog_new ((*document)->window, flags, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,"File is read only", NULL);
@@ -149,7 +120,7 @@ void read_only_popup(struct Document ** document) {
     gtk_widget_destroy (dialog);
 }
 
-void save(struct Document ** document) {
+void save(struct Document ** document, char * path) {
     
     // Collect all text
     GtkTextIter start;
@@ -160,7 +131,7 @@ void save(struct Document ** document) {
 
     char * text = gtk_text_buffer_get_text((*document)->buffer, &start, &end, 0);
 
-    FILE * f = fopen((*document)->name, "w");
+    FILE * f = fopen(path, "w");
     fprintf(f, text);
     fclose(f);
 
@@ -184,8 +155,8 @@ void save_as_command(GtkWidget * self, struct Document ** document) {
     {
         GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
         char * filename = gtk_file_chooser_get_filename (chooser);
-        strcpy((*document)->name, filename);
-        save(document);
+        save(document, filename);
+        
         g_free (filename);
     }
 
@@ -209,7 +180,7 @@ void save_command(GtkWidget * self, struct Document ** document) {
         return;
     }
 
-    save(document);
+    save(document, (*document)->data->path);
 
 }
 

@@ -1,4 +1,5 @@
 #define MAX_FILE 256
+#include <limits.h>
 typedef _Bool bool;
 
 struct Editor {
@@ -6,6 +7,7 @@ struct Editor {
     GtkNotebook * tabs;
     GtkWidget * expander;
     GtkWindow * window;
+    char * dir;
     struct File ** filesystem;
     int filecount;
     struct Document * current;

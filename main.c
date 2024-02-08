@@ -3,7 +3,6 @@
 #include "commands.h"
 #include "menu.h"
 #include "explorer.h"
-#include <limits.h>
 #include <sys/stat.h>
 
 int main(int argc, char * argv[]) {
@@ -44,12 +43,14 @@ int main(int argc, char * argv[]) {
     g_signal_connect(tabs, "switch-page", G_CALLBACK(tab_selected), &editor);
 
     // Theme
-    char * default_theme = "solarized-light";
-    char * theme = malloc(strlen(default_theme) + 1);
-    strcpy(theme, default_theme);
+    char * theme = g_strdup("solarized-light");
+
+    // Current working directory
+    char tmp[PATH_MAX] = "\0";
 
     // Editor initilization
     editor.tabs = GTK_NOTEBOOK(tabs);
+    editor.dir = tmp;
     editor.len = 0;
     editor.window = GTK_WINDOW(window);
     editor.filesystem = NULL;
@@ -81,7 +82,7 @@ int main(int argc, char * argv[]) {
 
     // Command line
     if (argc > 1) {
-        char full[4096];
+        char full[PATH_MAX];
         realpath(argv[1], full);
         struct stat buf;
         if (stat(full, &buf) == -1)
