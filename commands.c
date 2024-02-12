@@ -21,6 +21,12 @@ void open_command(GtkWidget * self, struct Editor * editor) {
 
 void clear_editor(struct Editor * editor) {
 
+    if (editor->process) {
+        pthread_cancel(editor->process->tid);
+        free(editor->process->event);
+        free(editor->process);
+        editor->process = NULL;
+    }
     GtkWidget * filelist = gtk_bin_get_child(GTK_BIN(editor->expander));
     if (GTK_IS_WIDGET(filelist))
         gtk_widget_destroy(filelist);

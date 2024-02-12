@@ -14,6 +14,7 @@ struct Editor {
     struct Document ** pages;
     int len;
     char * theme;
+    struct Threader * process;
 };
 
 enum Filetype {
@@ -39,4 +40,10 @@ struct File {
     char * path;
     GtkWidget * label;
     bool open;
+};
+
+#define THREAD_BUFFER 1024
+struct Threader {
+    struct inotify_event * event;
+    pthread_t tid;
 };

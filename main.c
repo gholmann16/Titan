@@ -56,6 +56,7 @@ int main(int argc, char * argv[]) {
     editor.filesystem = NULL;
     editor.filecount = 0;
     editor.theme = theme;
+    editor.process = NULL;
 
     // Menu setup
     GtkAccelGroup * accel = gtk_accel_group_new();
@@ -82,19 +83,18 @@ int main(int argc, char * argv[]) {
 
     // Command line
     if (argc > 1) {
-        char full[PATH_MAX];
-        realpath(argv[1], full);
+        char * full = realpath(argv[1], NULL);
         struct stat buf;
         if (stat(full, &buf) == -1)
             printf("File %s does not exist\n", argv[1]);
         else if (S_ISREG(buf.st_mode)) {
-            char * newpath = malloc(strlen(full) + 1);
-            strcpy(newpath, full);
-            newpage(&editor, newpath);
+            newpage(&editor, full);
+            full = NULL;
         }
         else if (S_ISDIR(buf.st_mode)) {
             open_explorer(&editor, full);
         }
+        free(full);
     }
 
     gtk_main();

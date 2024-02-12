@@ -2,6 +2,7 @@
 #include "global.h"
 #include "commands.h"
 #include <sys/stat.h>
+#include <sys/inotify.h>
 
 void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {    
     //Assumes it's the current tab
@@ -115,7 +116,6 @@ void init_text_view(struct Document * doc, struct Editor * editor) {
     GtkSourceSearchContext * context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), NULL);
 
     gtk_source_search_settings_set_wrap_around(gtk_source_search_context_get_settings(context), TRUE);
-    gtk_source_buffer_set_implicit_trailing_newline(GTK_SOURCE_BUFFER(buffer), FALSE);
 
     GtkSourceStyleSchemeManager * scheme_manager = gtk_source_style_scheme_manager_get_default();
     GtkSourceStyleScheme * scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, editor->theme);
@@ -329,10 +329,10 @@ void expanded(GtkExpander * self, struct Editor * editor) {
     struct File * folder = get_file(GTK_WIDGET(self), editor);
     if (gtk_expander_get_expanded(self)) {
         demolish(self, editor);
-        folder->open = TRUE; //Set value to the incorrect one so that selected callback works
     }
     else {
         fill_expander(GTK_WIDGET(self), folder->path, editor);
+        folder->open = TRUE;
     }
 }
 
@@ -353,16 +353,6 @@ void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
         file->open = TRUE;
         newpage(editor, file->path);
     }
-    else if GTK_IS_EXPANDER(widget) {
-        if (file->open != gtk_expander_get_expanded(GTK_EXPANDER(widget))) { //expanded callback just called
-            file->open = !file->open;
-        }
-        else { //Manual
-            gtk_expander_set_expanded(GTK_EXPANDER(widget), !file->open);
-            file->open = !file->open;
-        }
-    }
-
 }
 
 void fill_expander(GtkWidget * expander, char * directory, struct Editor * editor) {
@@ -437,11 +427,98 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
     gtk_widget_set_visible(files, TRUE);
 }
 
+void add_file(struct Editor * editor) {
+    editor->filecount++;
+    editor->filesystem = reallocarray(editor->filesystem, editor->filecount, sizeof(struct File *));
+    struct File * created = malloc(sizeof(struct File));
+    editor->filesystem[editor->filecount - 1] = created;
+
+    created->path = realpath(editor->process->event->name, NULL);
+    created->open = FALSE;
+    GtkWidget * name = gtk_label_new(editor->process->event->name);
+    created->label = name;
+    gtk_label_set_xalign(GTK_LABEL(name), 0.0);
+    gtk_list_box_insert(GTK_LIST_BOX(gtk_bin_get_child(GTK_BIN(editor->expander))), name, -1);
+    gtk_widget_set_visible(name, TRUE);
+}
+
+/*void remove_file(struct Editor * editor) {
+    char fdpath[32];
+    sprintf(fdpath, "/proc/self/fd/%d", editor->process->event->wd);
+    char path[PATH_MAX];
+    if (readlink(fdpath, path, PATH_MAX) == -1)
+        perror("readlink");
+    strcat(path, "/");
+    strcat(path, editor->process->event->name);
+    puts(path);
+
+    struct File * file = get_file_from_path(path, editor);
+    if (file) {
+        gtk_widget_destroy(file->label);
+        free(file->path);
+        free(file);
+    }
+}*/
+
+gboolean update_editor(struct Editor * editor) {
+    if (editor->process == NULL) //In the one in a million chance that triton kills the thread right as it calls this function
+        return FALSE;
+
+    switch (editor->process->event->mask) {
+        case IN_CREATE:
+            add_file(editor);
+            break;
+        case IN_MOVED_TO:
+            add_file(editor);
+            break;
+        case IN_MOVED_FROM:
+            //remove_file(editor);
+            break;
+        case IN_DELETE:
+            //remove_file(editor);
+            break;
+    }
+    return FALSE;
+}
+
+void * thread(void * ptr) {
+
+    struct Editor * editor = (struct Editor *)ptr;
+    char * err_msg = "Could not set up directory monitor. Your filelist will not be updated.";
+    int fd;
+
+    if ((fd = inotify_init()) == -1) {
+        puts(err_msg);
+        return NULL;
+    }
+    if (inotify_add_watch(fd, editor->dir, IN_MOVED_TO | IN_CREATE | IN_MOVED_FROM | IN_DELETE) == -1) {
+        puts(err_msg);
+        return NULL;
+    }
+
+    while (TRUE) {
+        if(read(fd, (char *)editor->process->event, THREAD_BUFFER) < 0)
+            continue;
+        if (!editor->process->event->len)
+            continue;
+        if (editor->process->event->mask & IN_CREATE || IN_MOVED_FROM || IN_MOVED_TO || IN_DELETE) {
+
+            g_idle_add(G_SOURCE_FUNC(update_editor), editor);
+        }
+    }
+}
+
 void open_explorer(struct Editor * editor, char * directory) {
     gtk_expander_set_expanded(GTK_EXPANDER(editor->expander), TRUE);
     strcpy(editor->dir, directory);
     fill_expander(editor->expander, directory, editor);
 
+    struct Threader * newthread = malloc(sizeof(struct Threader));
+    struct inotify_event * event = malloc(THREAD_BUFFER);
+    newthread->event = event;
+    newthread->tid = 0;
+    editor->process = newthread;
+    pthread_create(&newthread->tid, NULL, *thread, editor);
 }
 
 void init_explorer(GtkWidget * sections, struct Editor * editor) {
