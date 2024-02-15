@@ -4,6 +4,7 @@
 #include "menu.h"
 #include "explorer.h"
 #include <sys/stat.h>
+#include <sys/inotify.h>
 
 int main(int argc, char * argv[]) {
 
@@ -48,15 +49,26 @@ int main(int argc, char * argv[]) {
     // Current working directory
     char tmp[PATH_MAX] = "\0";
 
+    // Updater thread
+    int fd;
+    if ((fd = inotify_init()) == -1) {
+        printf("Filelist updates could not be set up, exiting program");
+        return -1;
+    }
+    struct inotify_event * event = malloc(THREAD_BUFFER);
+    pthread_create(&editor.tid, NULL, *thread, &editor);
+
     // Editor initilization
     editor.tabs = GTK_NOTEBOOK(tabs);
     editor.dir = tmp;
     editor.len = 0;
     editor.window = GTK_WINDOW(window);
+    editor.expander = NULL;
     editor.filesystem = NULL;
     editor.filecount = 0;
     editor.theme = theme;
-    editor.process = NULL;
+    editor.event = event;
+    editor.fd = fd;
 
     // Menu setup
     GtkAccelGroup * accel = gtk_accel_group_new();
@@ -102,6 +114,9 @@ int main(int argc, char * argv[]) {
 
     clear_editor(&editor);
     free(editor.theme);
+    close(editor.fd);
+    pthread_cancel(editor.tid);
+    free(editor.event);
     
     return 0;
 }

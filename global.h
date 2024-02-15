@@ -1,4 +1,6 @@
 #define MAX_FILE 256
+#define THREAD_BUFFER 1024
+
 #include <limits.h>
 typedef _Bool bool;
 
@@ -14,7 +16,9 @@ struct Editor {
     struct Document ** pages;
     int len;
     char * theme;
-    struct Threader * process;
+    int fd;
+    struct inotify_event * event;
+    pthread_t tid;
 };
 
 enum Filetype {
@@ -37,13 +41,8 @@ struct Document {
 };
 
 struct File {
+    int wd;
     char * path;
     GtkWidget * label;
     bool open;
-};
-
-#define THREAD_BUFFER 1024
-struct Threader {
-    struct inotify_event * event;
-    pthread_t tid;
 };

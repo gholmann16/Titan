@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include "global.h"
 #include "explorer.h"
+#include <sys/inotify.h>
 
 void open_command(GtkWidget * self, struct Editor * editor) {
     
@@ -21,17 +22,14 @@ void open_command(GtkWidget * self, struct Editor * editor) {
 
 void clear_editor(struct Editor * editor) {
 
-    if (editor->process) {
-        pthread_cancel(editor->process->tid);
-        free(editor->process->event);
-        free(editor->process);
-        editor->process = NULL;
-    }
     GtkWidget * filelist = gtk_bin_get_child(GTK_BIN(editor->expander));
     if (GTK_IS_WIDGET(filelist))
         gtk_widget_destroy(filelist);
 
     for (int i = 0; i < editor->filecount; i++) {
+        if (editor->filesystem[i]->wd != -1) {
+            inotify_rm_watch(editor->fd, editor->filesystem[i]->wd);
+        }
         free(editor->filesystem[i]->path);
         free(editor->filesystem[i]);
     }
@@ -69,7 +67,6 @@ void open_folder_command(GtkWidget * self, struct Editor * editor) {
 
         char * dirname = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
         open_explorer(editor, dirname);
-        free(dirname);
     }
 
     gtk_widget_destroy (dialog);

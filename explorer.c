@@ -1,8 +1,10 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
 #include "commands.h"
+#include "filesystem.h"
 #include <sys/stat.h>
 #include <sys/inotify.h>
+#include <fcntl.h>
 
 void change_indicator(GtkTextBuffer * buf, struct Editor * editor) {    
     //Assumes it's the current tab
@@ -42,24 +44,6 @@ void tab_selected(GtkNotebook * notebook, GtkWidget * page, gint num, struct Edi
             gtk_window_set_title(editor->window, newtitle);
         }
     }
-}
-
-struct File * get_file_from_path(char * path, struct Editor * editor) {
-    for (int i = 0; i < editor->filecount; i++) {
-        if (strcmp(editor->filesystem[i]->path, path) == 0) {
-            return editor->filesystem[i];
-        }
-    }
-    return 0;
-}
-
-struct File * get_file(GtkWidget * self, struct Editor * editor) {
-    for (int i = 0; i < editor->filecount; i++) {
-        if (editor->filesystem[i]->label == self) {
-            return editor->filesystem[i];
-        }
-    }
-    exit(-1);
 }
 
 void kill_tab_n(struct Editor * editor, int x) {
@@ -154,17 +138,14 @@ void newpage(struct Editor * editor, char * path) {
                 free(path);
         }
         else {
-            editor->filecount++;
-            editor->filesystem = reallocarray(editor->filesystem, editor->filecount, sizeof(struct File *));
-            struct File * newdir = malloc(sizeof(struct File));
-            editor->filesystem[editor->filecount - 1] = newdir;
+            struct File * newfile = new_file_struct(editor);
+            newfile->wd = -1;
+            newfile->path = path;
+            newfile->label = NULL;
+            newfile->open = TRUE;
 
-            newdir->path = path;
-            newdir->label = NULL;
-            newdir->open = TRUE;
-
-            doc->data = newdir;
-            datastruct = newdir;
+            doc->data = newfile;
+            datastruct = newfile;
         }
 
         if (!g_file_get_contents(datastruct->path, &contents, &len, NULL)) {
@@ -332,7 +313,6 @@ void expanded(GtkExpander * self, struct Editor * editor) {
     }
     else {
         fill_expander(GTK_WIDGET(self), folder->path, editor);
-        folder->open = TRUE;
     }
 }
 
@@ -356,7 +336,17 @@ void selected (GtkListBox* box, GtkListBoxRow* row, struct Editor * editor) {
 }
 
 void fill_expander(GtkWidget * expander, char * directory, struct Editor * editor) {
-    
+
+    int wd = 0;
+    if ((wd = inotify_add_watch(editor->fd, directory, IN_MOVED_TO | IN_CREATE | IN_MOVED_FROM | IN_DELETE)) == -1) {
+        printf("Could not access directory %s\n", directory);
+        return;
+    }
+    printf("wd = %d\n");
+    struct File * dirdata = get_file_from_path(directory, editor);
+    dirdata->wd = wd;
+    dirdata->open = TRUE;
+
     GtkWidget * files = gtk_list_box_new();
     gtk_container_add(GTK_CONTAINER(expander), files);
 
@@ -373,24 +363,17 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
         if (is_dir(ent)) {
             if (strcmp(ent->d_name, ".") && strcmp(ent->d_name, "..") && strcmp(ent->d_name, ".git")) {
 
-                editor->filecount++;
-                editor->filesystem = reallocarray(editor->filesystem, editor->filecount, sizeof(struct File *));
-                struct File * newdir = malloc(sizeof(struct File));
-                editor->filesystem[editor->filecount - 1] = newdir;
-
-                char * path = malloc(strlen(ent->d_name) + strlen(directory) + 1 + 1);
-                strcpy(path, directory);
-                strcat(path, "/");
-                strcat(path, ent->d_name);
+                char * path = gen_path(directory, ent->d_name);
+                struct File * newdir = new_file_struct(editor);
 
                 GtkWidget * folder = gtk_expander_new(ent->d_name);
                 gtk_list_box_insert(GTK_LIST_BOX(files), folder, -1);
                 gtk_widget_set_visible(folder, TRUE);
                 g_signal_connect(folder, "activate", G_CALLBACK(expanded), editor);
 
+                newdir->wd = -1;
                 newdir->path = path;
                 newdir->label = folder;
-                newdir->open = FALSE;
             }
         }
         else {
@@ -399,11 +382,7 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
             gtk_list_box_insert(GTK_LIST_BOX(files), name, -1);
             gtk_widget_set_visible(name, TRUE);
 
-            char * path = malloc(strlen(ent->d_name) + strlen(directory) + 1 + 1);
-            strcpy(path, directory);
-            strcat(path, "/");
-            strcat(path, ent->d_name);
-
+            char * path = gen_path(directory, ent->d_name);
             struct File * loc = get_file_from_path(path, editor);
             if (loc) {
                 loc->label = name;
@@ -411,14 +390,10 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
                 continue;
             }
 
-            editor->filecount++;
-            editor->filesystem = reallocarray(editor->filesystem, editor->filecount, sizeof(struct File *));
-            struct File * newfile = malloc(sizeof(struct File));
-            editor->filesystem[editor->filecount - 1] = newfile;
-
+            struct File * newfile = new_file_struct(editor);
+            newfile->wd = -1;
             newfile->path = path;
             newfile->label = name;
-            newfile->open = FALSE;
         }
     }
     closedir (dir);
@@ -428,29 +403,49 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
 }
 
 void add_file(struct Editor * editor) {
-    editor->filecount++;
-    editor->filesystem = reallocarray(editor->filesystem, editor->filecount, sizeof(struct File *));
-    struct File * created = malloc(sizeof(struct File));
-    editor->filesystem[editor->filecount - 1] = created;
+    struct File * dir = get_dir(editor->event->wd, editor);
+    GtkListBox * files = GTK_LIST_BOX(gtk_bin_get_child(GTK_BIN(dir->label)));
 
-    created->path = realpath(editor->process->event->name, NULL);
-    created->open = FALSE;
-    GtkWidget * name = gtk_label_new(editor->process->event->name);
-    created->label = name;
-    gtk_label_set_xalign(GTK_LABEL(name), 0.0);
-    gtk_list_box_insert(GTK_LIST_BOX(gtk_bin_get_child(GTK_BIN(editor->expander))), name, -1);
-    gtk_widget_set_visible(name, TRUE);
+    char * path = gen_path(dir->path, editor->event->name);
+    puts(path);
+
+    struct File * created = new_file_struct(editor);
+    created->path = path;
+
+    if (editor->event->mask & IN_ISDIR) {
+        int wd;
+        if (wd = inotify_add_watch(editor->fd, dir->path, IN_MOVED_TO | IN_CREATE | IN_MOVED_FROM | IN_DELETE) == -1) {
+            printf("Could not access directory %s\n", dir->path);
+            free(path);
+            free(created);
+            return;
+        }
+
+        created->wd = wd;
+
+        GtkWidget * folder = gtk_expander_new(editor->event->name);
+        gtk_list_box_insert(files, folder, -1);
+        gtk_widget_set_visible(folder, TRUE);
+        g_signal_connect(folder, "activate", G_CALLBACK(expanded), editor);
+        created->label = folder;
+    }
+    else {
+        GtkWidget * name = gtk_label_new(editor->event->name);
+        gtk_label_set_xalign(GTK_LABEL(name), 0.0);
+        gtk_list_box_insert(files, name, -1);
+        gtk_widget_set_visible(name, TRUE);
+        created->label = name;
+        created->wd = -1;
+    }
 }
 
-/*void remove_file(struct Editor * editor) {
-    char fdpath[32];
-    sprintf(fdpath, "/proc/self/fd/%d", editor->process->event->wd);
+void remove_file(struct Editor * editor) {
+    struct File * dir = get_dir(editor->event->wd, editor);
+
     char path[PATH_MAX];
-    if (readlink(fdpath, path, PATH_MAX) == -1)
-        perror("readlink");
+    strcpy(path, dir->path);
     strcat(path, "/");
-    strcat(path, editor->process->event->name);
-    puts(path);
+    strcat(path, editor->event->name);
 
     struct File * file = get_file_from_path(path, editor);
     if (file) {
@@ -458,13 +453,11 @@ void add_file(struct Editor * editor) {
         free(file->path);
         free(file);
     }
-}*/
+}
 
 gboolean update_editor(struct Editor * editor) {
-    if (editor->process == NULL) //In the one in a million chance that triton kills the thread right as it calls this function
-        return FALSE;
 
-    switch (editor->process->event->mask) {
+    switch (editor->event->mask) {
         case IN_CREATE:
             add_file(editor);
             break;
@@ -472,10 +465,10 @@ gboolean update_editor(struct Editor * editor) {
             add_file(editor);
             break;
         case IN_MOVED_FROM:
-            //remove_file(editor);
+            remove_file(editor);
             break;
         case IN_DELETE:
-            //remove_file(editor);
+            remove_file(editor);
             break;
     }
     return FALSE;
@@ -484,41 +477,28 @@ gboolean update_editor(struct Editor * editor) {
 void * thread(void * ptr) {
 
     struct Editor * editor = (struct Editor *)ptr;
-    char * err_msg = "Could not set up directory monitor. Your filelist will not be updated.";
-    int fd;
-
-    if ((fd = inotify_init()) == -1) {
-        puts(err_msg);
-        return NULL;
-    }
-    if (inotify_add_watch(fd, editor->dir, IN_MOVED_TO | IN_CREATE | IN_MOVED_FROM | IN_DELETE) == -1) {
-        puts(err_msg);
-        return NULL;
-    }
 
     while (TRUE) {
-        if(read(fd, (char *)editor->process->event, THREAD_BUFFER) < 0)
+        if(read(editor->fd, (char *)editor->event, THREAD_BUFFER) < 0)
             continue;
-        if (!editor->process->event->len)
+        if (!editor->event->len)
             continue;
-        if (editor->process->event->mask & IN_CREATE || IN_MOVED_FROM || IN_MOVED_TO || IN_DELETE) {
-
+        if (editor->event->mask & IN_CREATE || IN_MOVED_FROM || IN_MOVED_TO || IN_DELETE) {
             g_idle_add(G_SOURCE_FUNC(update_editor), editor);
         }
     }
 }
 
 void open_explorer(struct Editor * editor, char * directory) {
+
+    struct File * maindir = new_file_struct(editor);
+    maindir->path = directory;
+    maindir->label = editor->expander;
+    maindir->wd = -1;
+
     gtk_expander_set_expanded(GTK_EXPANDER(editor->expander), TRUE);
     strcpy(editor->dir, directory);
     fill_expander(editor->expander, directory, editor);
-
-    struct Threader * newthread = malloc(sizeof(struct Threader));
-    struct inotify_event * event = malloc(THREAD_BUFFER);
-    newthread->event = event;
-    newthread->tid = 0;
-    editor->process = newthread;
-    pthread_create(&newthread->tid, NULL, *thread, editor);
 }
 
 void init_explorer(GtkWidget * sections, struct Editor * editor) {
@@ -527,8 +507,9 @@ void init_explorer(GtkWidget * sections, struct Editor * editor) {
     gtk_box_pack_start(GTK_BOX(sections), scrolled, 0, 1, 0);
 
     GtkWidget * expander = gtk_expander_new("Code");
-    editor->expander = expander;
-    editor->sections = sections;
+    g_signal_connect(expander, "activate", G_CALLBACK(expanded), editor);
 
+    editor->sections = sections;
+    editor->expander = expander;
     gtk_container_add(GTK_CONTAINER(scrolled), expander);
 }
