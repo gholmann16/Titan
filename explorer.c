@@ -93,8 +93,11 @@ void init_text_view(struct Document * doc, struct Editor * editor) {
     gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(text), 4);
     gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text), TRUE);
     
-    doc->scrolled = gtk_scrolled_window_new(NULL, NULL);
-    gtk_container_add(GTK_CONTAINER(doc->scrolled), text);
+    GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
+    gtk_container_add(GTK_CONTAINER(scrolled), text);
+
+    doc->scrolled = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_box_pack_start(GTK_BOX(doc->scrolled), GTK_WIDGET(scrolled), 1, 1, 0);
 
     GtkTextBuffer * buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
     GtkSourceSearchContext * context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), NULL);
@@ -171,9 +174,6 @@ void newpage(struct Editor * editor, char * path) {
 
         case Text:
             init_text_view(doc, editor);
-            if (!GTK_IS_SCROLLED_WINDOW(doc->scrolled)) {
-                exit(-1);
-            }
 
             if (contents) {
                 gtk_text_buffer_set_text(doc->buffer, contents, len);
@@ -185,6 +185,10 @@ void newpage(struct Editor * editor, char * path) {
             gtk_text_buffer_set_modified(doc->buffer, FALSE);
             filename_to_title(doc);
             g_signal_connect(doc->buffer, "modified-changed", G_CALLBACK(change_indicator), editor);
+
+            GtkWidget * map = gtk_source_map_new();
+            gtk_source_map_set_view(GTK_SOURCE_MAP(map), GTK_SOURCE_VIEW(doc->view));
+            gtk_box_pack_start(GTK_BOX(doc->scrolled), map, 0, 0, 0);
             break;
 
         case Binary:
@@ -342,7 +346,6 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
         printf("Could not access directory %s\n", directory);
         return;
     }
-    printf("wd = %d\n");
     struct File * dirdata = get_file_from_path(directory, editor);
     dirdata->wd = wd;
     dirdata->open = TRUE;
@@ -407,7 +410,6 @@ void add_file(struct Editor * editor) {
     GtkListBox * files = GTK_LIST_BOX(gtk_bin_get_child(GTK_BIN(dir->label)));
 
     char * path = gen_path(dir->path, editor->event->name);
-    puts(path);
 
     struct File * created = new_file_struct(editor);
     created->path = path;
