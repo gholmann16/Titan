@@ -174,7 +174,7 @@ void save_command(GtkWidget * self, struct Document ** document) {
         return;
 
     if ((*document)->name[0] == '\0') {
-        save_as_command(self, document);
+        save_as_command(NULL, document);
         return;
     }
 
@@ -233,6 +233,30 @@ void print_preview_command(GtkWidget * self, struct Document ** document) {
     g_object_unref(compositor);
 }
 
+bool prompt_save(struct Editor * editor) {
+    GtkWidget * close = gtk_dialog_new_with_buttons("Triton", editor->current->window, GTK_DIALOG_MODAL, "No", 0, "Cancel", 1, "Yes", 2, NULL);
+    GtkWidget * content = gtk_dialog_get_content_area(GTK_DIALOG(close));
+    GtkWidget * message = gtk_label_new("Would you like to save?");
+
+    gtk_container_add(GTK_CONTAINER(content), message);
+    gtk_widget_show_all(content);
+
+    int res = gtk_dialog_run (GTK_DIALOG (close));
+    gtk_widget_destroy (close);
+
+    switch (res) {
+        case 0:
+            return TRUE;
+        case 1:
+            return FALSE;
+        case 2:
+            save_command(NULL, &(editor->current));
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
+
 void exit_command(GtkWidget * self, struct Editor * editor) {
 
     if (editor->len == 0) {
@@ -247,25 +271,10 @@ void exit_command(GtkWidget * self, struct Editor * editor) {
         else if (gtk_text_buffer_get_modified(editor->pages[i]->buffer) == TRUE) {
             gtk_notebook_set_current_page(editor->tabs, i);
 
-            GtkWidget * close = gtk_dialog_new_with_buttons("Triton", editor->current->window, GTK_DIALOG_MODAL, "No", 0, "Cancel", 1, "Yes", 2, NULL);
-            GtkWidget * content = gtk_dialog_get_content_area(GTK_DIALOG(close));
-            GtkWidget * message = gtk_label_new("Would you like to save?");
-
-            gtk_container_add(GTK_CONTAINER(content), message);
-            gtk_widget_show_all(content);
-
-            int res = gtk_dialog_run (GTK_DIALOG (close));
-            gtk_widget_destroy (close);
-
-            switch (res) {
-                case 0:
-                    continue;
-                case 1:
-                    return;
-                case 2:
-                    save_command(GTK_WIDGET(self), &(editor->current));
-                    continue;
-            }
+            if(prompt_save(editor)) 
+                continue;
+            else 
+                return;
         }
     }
 

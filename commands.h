@@ -20,6 +20,8 @@ void print_preview_command(GtkWidget * self, struct Document ** document);
 
 void close_tab_command(GtkWidget * self, struct Editor * editor);
 
+bool prompt_save(struct Editor * editor);
+
 void exit_command(GtkWidget * self, struct Editor * editor);
 
 gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Editor * editor);
