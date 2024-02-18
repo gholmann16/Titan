@@ -1,6 +1,6 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
-#include "commands.h"
+#include "window.h"
 #include "menu.h"
 #include "explorer.h"
 #include <sys/stat.h>
@@ -97,16 +97,16 @@ int main(int argc, char * argv[]) {
     if (argc > 1) {
         char * full = realpath(argv[1], NULL);
         struct stat buf;
-        if (stat(full, &buf) == -1)
+        if (stat(full, &buf) == -1) {
             printf("File %s does not exist\n", argv[1]);
+            free(full);
+        }
         else if (S_ISREG(buf.st_mode)) {
             newpage(&editor, full);
-            full = NULL;
         }
         else if (S_ISDIR(buf.st_mode)) {
             open_explorer(&editor, full);
         }
-        free(full);
     }
 
     gtk_main();

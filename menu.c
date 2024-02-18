@@ -1,6 +1,7 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
 #include "commands.h"
+#include "window.h"
 
 int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** document, struct Editor * editor) {
 

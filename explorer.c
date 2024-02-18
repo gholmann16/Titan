@@ -1,6 +1,6 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
-#include "commands.h"
+#include "window.h"
 #include <sys/stat.h>
 #include <sys/inotify.h>
 #include <fcntl.h>
@@ -94,10 +94,18 @@ char * gen_path(char * dir, char * name) {
 
 void kill_tab_n(struct Editor * editor, int x) {
 
-    if(prompt_save(editor) == FALSE)
-        return;
+    if (!editor->pages[x]->type && gtk_text_buffer_get_modified(editor->pages[x]->buffer)) {
+        gtk_notebook_set_current_page(editor->tabs, x);
+        if(prompt_save(editor) == FALSE)
+            return;
+    }
 
     gtk_notebook_remove_page(editor->tabs, x);
+    // gtk_widget_destroy(editor->pages[x]->view);
+    // gtk_widget_destroy(editor->pages[x]->close);
+    // gtk_widget_destroy(editor->pages[x]->modified);
+    if (editor->pages[x]->type == Text || editor->pages[x]->type == Binary)
+        g_object_unref(G_OBJECT(editor->pages[x]->context));
 
     struct File * datastruct = editor->pages[x]->data;
     if (datastruct)
