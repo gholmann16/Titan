@@ -28,7 +28,7 @@ void filename_to_title(struct Document * document) {
         p = strrchr(document->name, '/') + 1;
     }
     strcpy(title, p);
-    strcat(title, " - Triton");
+    strcat(title, " - Titan");
     gtk_window_set_title(document->window, title);
 }
 

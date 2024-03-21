@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=Triton
+Name=Titan
 Comment=Simple code editor
-Exec=triton %f
-Icon=triton
+Exec=titan %f
+Icon=titan
 Terminal=false
 MimeType=text/plain
 Categories=GTK;TextEditor;Development;

@@ -118,7 +118,7 @@ void new_folder_command(GtkWidget * self, struct Editor * editor) {
     gtk_widget_destroy (dialog);
 }
 bool prompt_save(struct Editor * editor) {
-    GtkWidget * close = gtk_dialog_new_with_buttons("Triton", editor->current->window, GTK_DIALOG_MODAL, "No", 0, "Cancel", 1, "Yes", 2, NULL);
+    GtkWidget * close = gtk_dialog_new_with_buttons("Titan", editor->current->window, GTK_DIALOG_MODAL, "No", 0, "Cancel", 1, "Yes", 2, NULL);
     GtkWidget * content = gtk_dialog_get_content_area(GTK_DIALOG(close));
     GtkWidget * message = gtk_label_new("Would you like to save?");
 
@@ -204,10 +204,10 @@ void about_command(GtkWidget * self, struct Editor * editor) {
 
     gtk_about_dialog_set_license_type(about, GTK_LICENSE_GPL_3_0);
 
-    const char * comments = "Triton is a simple gtk3 code editor intended to be small and efficient. It aims to have a similar functionality to vs code and a smaller memory footprint.";
+    const char * comments = "Titan is a simple gtk3 code editor intended to be small and efficient. It aims to have a similar functionality to vs code and a smaller memory footprint.";
     gtk_about_dialog_set_comments(about, comments);
 
-    const char * website = "https://github.com/gholmann16/Triton";
+    const char * website = "https://github.com/gholmann16/Titan";
     gtk_about_dialog_set_website(about, website);
 
     gtk_dialog_run(GTK_DIALOG(about_dialog));

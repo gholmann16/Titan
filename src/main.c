@@ -25,11 +25,11 @@ int main(int argc, char * argv[]) {
     if (getenv("APPDIR")) {
         char path[PATH_MAX];
         strcpy(path, getenv("APPDIR"));
-        strcat(path, "/triton.png");
+        strcat(path, "/titan.png");
         icon = gdk_pixbuf_new_from_file(path, &error);
     }
     else 
-        icon = gdk_pixbuf_new_from_file("/usr/share/pixmaps/triton.png", &error);
+        icon = gdk_pixbuf_new_from_file("/usr/share/pixmaps/titan.png", &error);
 
     if (error != NULL) {
         puts(error->message);
