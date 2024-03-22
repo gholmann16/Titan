@@ -196,8 +196,8 @@ void about_command(GtkWidget * self, struct Editor * editor) {
     GtkWidget * about_dialog = gtk_about_dialog_new();
     GtkAboutDialog * about = GTK_ABOUT_DIALOG(about_dialog);
 
-    GdkPixbuf * icon = gtk_window_get_icon(editor->window);
-    gtk_about_dialog_set_logo(about, icon);
+    gtk_about_dialog_set_program_name(about, "Titan");
+    gtk_about_dialog_set_logo_icon_name(about, "titan");
 
     const char * authors[] = {"Gabriel Holmann <gholmann16@gmail.com>", NULL};
     gtk_about_dialog_set_authors(about, authors);

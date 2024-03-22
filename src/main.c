@@ -1,7 +1,7 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
 #include "window.h"
-#include "menu.h"
+#include "setup.h"
 #include "explorer.h"
 #include <sys/stat.h>
 #include <sys/inotify.h>
@@ -16,26 +16,10 @@ int main(int argc, char * argv[]) {
     gtk_source_init();
 
     GtkWidget * window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(window), "Triton");
+    gtk_window_set_title(GTK_WINDOW(window), "Titan");
     gtk_window_set_default_size(GTK_WINDOW(window), 1080, 840);
     g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), &editor);
-
-    GError *error = NULL;
-    GdkPixbuf * icon;
-    if (getenv("APPDIR")) {
-        char path[PATH_MAX];
-        strcpy(path, getenv("APPDIR"));
-        strcat(path, "/titan.png");
-        icon = gdk_pixbuf_new_from_file(path, &error);
-    }
-    else 
-        icon = gdk_pixbuf_new_from_file("/usr/share/pixmaps/titan.png", &error);
-
-    if (error != NULL) {
-        puts(error->message);
-        g_clear_error (&error);
-    }
-    gtk_window_set_icon(GTK_WINDOW(window), icon);
+    init_app(GTK_WINDOW(window));
 
     // Main view
 

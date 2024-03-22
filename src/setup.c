@@ -3,7 +3,27 @@
 #include "commands.h"
 #include "window.h"
 
-int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** document, struct Editor * editor) {
+void init_app(GtkWindow * window) {
+    char path[PATH_MAX] = "";
+    if (getenv("APPDIR") && strlen(getenv("APPDIR")) < PATH_MAX - strlen("/usr/share/locale/")) {
+        strcpy(path, getenv("APPDIR"));
+        strcat(path, "/usr/share/icons");
+        gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), path);
+        strcpy(path, getenv("APPDIR"));
+    }
+    strcat(path, "/usr/share/locale/");
+
+    // setlocale(LC_ALL, "");
+    // bindtextdomain("titan", path);
+    // bind_textdomain_codeset("titan", "utf-8");
+    // textdomain("titan");
+
+    gtk_window_set_icon_name(window, "titan");
+}
+
+void init_preferences(struct Editor * editor);
+
+void init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** document, struct Editor * editor) {
 
     // File menu
 
@@ -203,5 +223,4 @@ int init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** documen
     g_signal_connect(about, "activate", G_CALLBACK(about_command), editor);
     gtk_menu_shell_append(GTK_MENU_SHELL(helpmenu), about);
 
-    return 0;
 }
