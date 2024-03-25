@@ -2,6 +2,8 @@
 #define THREAD_BUFFER 1024
 
 #include <limits.h>
+#include <libintl.h>
+#define _(STRING) gettext(STRING)
 typedef _Bool bool;
 
 struct Editor {

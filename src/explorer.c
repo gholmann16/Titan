@@ -210,7 +210,7 @@ void newpage(struct Editor * editor, char * path) {
         }
 
         if (!g_file_get_contents(datastruct->path, &contents, &len, NULL)) {
-            puts("File system error, exiting.");
+            puts(_("File system error, exiting."));
             exit(-1);
         }
         content_type = g_content_type_guess(NULL, contents, len, NULL);
@@ -401,7 +401,7 @@ void fill_expander(GtkWidget * expander, char * directory, struct Editor * edito
 
     int wd = 0;
     if ((wd = inotify_add_watch(editor->fd, directory, IN_MOVED_TO | IN_CREATE | IN_MOVED_FROM | IN_DELETE)) == -1) {
-        printf("Could not access directory %s\n", directory);
+        warning_popup(editor->window, _("Could not access directory"));
         return;
     }
     struct File * dirdata = get_file_from_path(directory, editor);
@@ -475,7 +475,7 @@ void add_file(struct Editor * editor) {
     if (editor->event->mask & IN_ISDIR) {
         int wd;
         if (wd = inotify_add_watch(editor->fd, dir->path, IN_MOVED_TO | IN_CREATE | IN_MOVED_FROM | IN_DELETE) == -1) {
-            printf("Could not access directory %s\n", dir->path);
+            warning_popup(editor->window, _("Could not access directory"));
             free(path);
             free(created);
             return;
@@ -566,7 +566,7 @@ void init_explorer(GtkWidget * sections, struct Editor * editor) {
     gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(scrolled), 200);
     gtk_box_pack_start(GTK_BOX(sections), scrolled, 0, 1, 0);
 
-    GtkWidget * expander = gtk_expander_new("Code");
+    GtkWidget * expander = gtk_expander_new(_("Code"));
     g_signal_connect(expander, "activate", G_CALLBACK(expanded), editor);
 
     editor->sections = sections;

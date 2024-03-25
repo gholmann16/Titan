@@ -36,7 +36,7 @@ int main(int argc, char * argv[]) {
     // Updater thread
     int fd;
     if ((fd = inotify_init()) == -1) {
-        printf("Filelist updates could not be set up, exiting program");
+        printf(_("Filelist updates could not be set up, exiting program"));
         return -1;
     }
     struct inotify_event * event = malloc(THREAD_BUFFER);
@@ -82,7 +82,7 @@ int main(int argc, char * argv[]) {
         char * full = realpath(argv[1], NULL);
         struct stat buf;
         if (stat(full, &buf) == -1) {
-            printf("File %s does not exist\n", argv[1]);
+            warning_popup(GTK_WINDOW(window), _("File does not exist\n"));
             free(full);
         }
         else if (S_ISREG(buf.st_mode)) {

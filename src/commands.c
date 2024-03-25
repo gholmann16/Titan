@@ -1,12 +1,6 @@
 #include <gtksourceview/gtksource.h>
 #include "global.h"
-
-void read_only_popup(struct Document ** document) {
-    GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
-    GtkWidget * dialog = gtk_message_dialog_new ((*document)->window, flags, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,"File is read only", NULL);
-    gtk_dialog_run (GTK_DIALOG (dialog));
-    gtk_widget_destroy (dialog);
-}
+#include "window.h"
 
 void save(struct Document ** document, char * path) {
     
@@ -31,12 +25,12 @@ void save_as_command(GtkWidget * self, struct Document ** document) {
     if(*document == NULL) return;
     
     if ((*document)->type) {
-        read_only_popup(document);
+        warning_popup((*document)->window, _("File is read only"));
         return;
     }
 
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
-    GtkWidget *dialog = gtk_file_chooser_dialog_new ("Save File", (*document)->window, action, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Save"), GTK_RESPONSE_ACCEPT, NULL);
+    GtkWidget *dialog = gtk_file_chooser_dialog_new (_("Save File"), (*document)->window, action, _("Cancel"), GTK_RESPONSE_CANCEL, _("Save"), GTK_RESPONSE_ACCEPT, NULL);
 
     gint res = gtk_dialog_run (GTK_DIALOG (dialog));
     if (res == GTK_RESPONSE_ACCEPT)
@@ -64,7 +58,7 @@ void save_command(GtkWidget * self, struct Document ** document) {
     }
 
     if ((*document)->type) {
-        read_only_popup(document);
+        warning_popup((*document)->window, _("File is read only"));
         return;
     }
 
@@ -195,7 +189,7 @@ void search_command(GtkWidget * self, struct Document ** document) {
 
     GtkSourceSearchSettings * settings = gtk_source_search_context_get_settings((*document)->context);
 
-    GtkWidget * dialog = gtk_dialog_new_with_buttons("Find", (*document)->window, GTK_DIALOG_DESTROY_WITH_PARENT, "Cancel", 0, "Find", 1, NULL);
+    GtkWidget * dialog = gtk_dialog_new_with_buttons(_("Find"), (*document)->window, GTK_DIALOG_DESTROY_WITH_PARENT, _("Cancel"), 0, _("Find"), 1, NULL);
     GtkWidget * content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
 
     GtkWidget * box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
@@ -206,8 +200,8 @@ void search_command(GtkWidget * self, struct Document ** document) {
     if (text)
         gtk_entry_set_text(GTK_ENTRY(entry), text);
 
-    GtkWidget * label = gtk_label_new("Find text:");
-    GtkWidget * bubble = gtk_check_button_new_with_label("Match case");
+    GtkWidget * label = gtk_label_new(_("Find text:"));
+    GtkWidget * bubble = gtk_check_button_new_with_label(_("Match case"));
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(bubble), gtk_source_search_settings_get_case_sensitive(settings));
     g_signal_connect(bubble, "toggled", G_CALLBACK(match_case), settings);
 
@@ -280,18 +274,18 @@ void replace_command(GtkWidget * self, struct Document ** document) {
     (*document)->last = last;
     GtkSourceSearchSettings * settings = gtk_source_search_context_get_settings((*document)->context);
 
-    GtkWidget * dialog = gtk_dialog_new_with_buttons("Replace", (*document)->window, GTK_DIALOG_DESTROY_WITH_PARENT, "Cancel", 0, NULL);
+    GtkWidget * dialog = gtk_dialog_new_with_buttons(_("Replace"), (*document)->window, GTK_DIALOG_DESTROY_WITH_PARENT, _("Cancel"), 0, NULL);
     GtkWidget * content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
 
     // Search
     GtkWidget * box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-    GtkWidget * label = gtk_label_new("Search text:");
+    GtkWidget * label = gtk_label_new(_("Find text:"));
     GtkWidget * entry = gtk_entry_new();
     g_signal_connect(entry, "activate", G_CALLBACK(search_entry), document);
     const gchar * text = gtk_source_search_settings_get_search_text(settings);
     if (text)
         gtk_entry_set_text(GTK_ENTRY(entry), text);
-    GtkWidget * search_button = gtk_button_new_with_label("Search");
+    GtkWidget * search_button = gtk_button_new_with_label(_("Find"));
 
     gtk_box_pack_start(GTK_BOX(box), label, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), entry, 0, 0, 0);
@@ -300,9 +294,9 @@ void replace_command(GtkWidget * self, struct Document ** document) {
 
     // Replace
     GtkWidget * box2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-    GtkWidget * label2 = gtk_label_new("Replace text");
+    GtkWidget * label2 = gtk_label_new(_("Replace text"));
     GtkWidget * entry2 = gtk_entry_new();
-    GtkWidget * replace_button = gtk_button_new_with_label("Replace");
+    GtkWidget * replace_button = gtk_button_new_with_label(_("Replace"));
 
     struct Replace rep = {
         settings,
@@ -318,8 +312,8 @@ void replace_command(GtkWidget * self, struct Document ** document) {
     gtk_box_pack_start(GTK_BOX(box2), replace_button, 0, 0, 0);
     gtk_container_add(GTK_CONTAINER(content), box2);
 
-    GtkWidget * bubble = gtk_check_button_new_with_label("Match case");
-    GtkWidget * bubble2 = gtk_check_button_new_with_label("Replace all");
+    GtkWidget * bubble = gtk_check_button_new_with_label(_("Match case"));
+    GtkWidget * bubble2 = gtk_check_button_new_with_label(_("Replace all"));
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(bubble), gtk_source_search_settings_get_case_sensitive(settings));
     g_signal_connect(bubble, "toggled", G_CALLBACK(match_case), settings);
@@ -353,10 +347,10 @@ int lines_in_buffer(GtkTextBuffer * buffer) {
 
 void go_to_command(GtkWidget * self, struct Document ** document) {
     if(*document == NULL) return;
-    GtkWidget * dialog = gtk_dialog_new_with_buttons("Go To", (*document)->window, GTK_DIALOG_DESTROY_WITH_PARENT, "Go To", 0, "Cancel", 1, NULL);
+    GtkWidget * dialog = gtk_dialog_new_with_buttons(_("Go To"), (*document)->window, GTK_DIALOG_DESTROY_WITH_PARENT, _("Go To"), 0, _("Cancel"), 1, NULL);
     GtkWidget * content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
 
-    GtkWidget * line = gtk_label_new("Line number:");
+    GtkWidget * line = gtk_label_new(_("Line number:"));
     int l = lines_in_buffer((*document)->buffer);
 
     GtkWidget * spin = gtk_spin_button_new_with_range(1, l, 1);

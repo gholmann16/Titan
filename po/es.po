@@ -1,0 +1,212 @@
+#: src/commands.c:28 src/commands.c:61
+msgid "File is read only"
+msgstr ""
+
+#: src/commands.c:33
+msgid "Save File"
+msgstr ""
+
+#: src/commands.c:33 src/commands.c:192 src/commands.c:277 src/commands.c:350
+#: src/window.c:18 src/window.c:63 src/window.c:103 src/window.c:127
+msgid "Cancel"
+msgstr ""
+
+#: src/commands.c:33 src/setup.c:62
+msgid "Save"
+msgstr ""
+
+#: src/commands.c:192 src/commands.c:288 src/setup.c:150
+msgid "Find"
+msgstr ""
+
+#: src/commands.c:203 src/commands.c:282
+msgid "Find text:"
+msgstr ""
+
+#: src/commands.c:204 src/commands.c:315
+msgid "Match case"
+msgstr ""
+
+#: src/commands.c:277 src/commands.c:299 src/setup.c:160
+msgid "Replace"
+msgstr ""
+
+#: src/commands.c:297
+msgid "Replace text"
+msgstr ""
+
+#: src/commands.c:316
+msgid "Replace all"
+msgstr ""
+
+#: src/commands.c:350
+msgid "Go To"
+msgstr ""
+
+#: src/commands.c:353
+msgid "Line number:"
+msgstr ""
+
+#: src/explorer.c:213
+msgid "File system error, exiting."
+msgstr ""
+
+#: src/explorer.c:404 src/explorer.c:478
+msgid "Could not access directory"
+msgstr ""
+
+#: src/explorer.c:569
+msgid "Code"
+msgstr ""
+
+#: src/main.c:39
+#, c-format
+msgid "Filelist updates could not be set up, exiting program"
+msgstr ""
+
+#: src/main.c:85
+msgid "File does not exist\n"
+msgstr ""
+
+#: src/setup.c:36
+msgid "New File"
+msgstr ""
+
+#: src/setup.c:41
+msgid "New Folder"
+msgstr ""
+
+#: src/setup.c:45
+msgid "New Window"
+msgstr ""
+
+#: src/setup.c:52 src/window.c:18 src/window.c:63 src/window.c:103
+msgid "Open"
+msgstr ""
+
+#: src/setup.c:57 src/window.c:63 src/window.c:103
+msgid "Open Folder"
+msgstr ""
+
+#: src/setup.c:67
+msgid "Save as..."
+msgstr ""
+
+#: src/setup.c:74
+msgid "Print..."
+msgstr ""
+
+#: src/setup.c:79
+msgid "Print Preview..."
+msgstr ""
+
+#: src/setup.c:86
+msgid "Close tab"
+msgstr ""
+
+#: src/setup.c:91
+msgid "Exit"
+msgstr ""
+
+#: src/setup.c:98
+msgid "Edit"
+msgstr ""
+
+#: src/setup.c:104
+msgid "Undo"
+msgstr ""
+
+#: src/setup.c:109
+msgid "Redo"
+msgstr ""
+
+#: src/setup.c:117
+msgid "Cut"
+msgstr ""
+
+#: src/setup.c:122
+msgid "Copy"
+msgstr ""
+
+#: src/setup.c:127
+msgid "Paste"
+msgstr ""
+
+#: src/setup.c:132
+msgid "Delete"
+msgstr ""
+
+#: src/setup.c:139
+msgid "Select all"
+msgstr ""
+
+#: src/setup.c:144
+msgid "Search"
+msgstr ""
+
+#: src/setup.c:155
+msgid "Find next"
+msgstr ""
+
+#: src/setup.c:168
+msgid "Go to"
+msgstr ""
+
+#: src/setup.c:173
+msgid "View"
+msgstr ""
+
+#: src/setup.c:179
+msgid "Theme"
+msgstr ""
+
+#: src/setup.c:196
+msgid "Options"
+msgstr ""
+
+#: src/setup.c:202
+msgid "Font..."
+msgstr ""
+
+#: src/setup.c:206
+msgid "Wrap line"
+msgstr ""
+
+#: src/setup.c:211
+msgid "Convert tabs to spaces"
+msgstr ""
+
+#: src/setup.c:216
+msgid "Help"
+msgstr ""
+
+#: src/setup.c:222
+msgid "About"
+msgstr ""
+
+#: src/window.c:18
+msgid "Open File"
+msgstr ""
+
+#: src/window.c:110
+msgid "The name of your directory is too long."
+msgstr ""
+
+#: src/window.c:127
+msgid "No"
+msgstr ""
+
+#: src/window.c:127
+msgid "Yes"
+msgstr ""
+
+#: src/window.c:129
+msgid "Would you like to save?"
+msgstr ""
+
+#: src/window.c:213
+msgid ""
+"Titan is a simple gtk3 code editor intended to be small and efficient. It "
+"aims to have a similar functionality to vs code and a smaller memory "
+"footprint."
+msgstr ""

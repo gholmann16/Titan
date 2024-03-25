@@ -2,14 +2,20 @@
 #include <sys/stat.h>
 #include "global.h"
 #include "explorer.h"
+#include "commands.h"
 #include <sys/inotify.h>
 
-void save_command(GtkWidget * self, struct Document ** document);
+void warning_popup(GtkWindow * window, char * text) {
+    GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
+    GtkWidget * dialog = gtk_message_dialog_new (window, flags, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, text, NULL);
+    gtk_dialog_run (GTK_DIALOG (dialog));
+    gtk_widget_destroy (dialog);
+}
 
 void open_command(GtkWidget * self, struct Editor * editor) {
     
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-    GtkWidget *dialog = gtk_file_chooser_dialog_new ("Open File", editor->window, action, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Open"), GTK_RESPONSE_ACCEPT, NULL);
+    GtkWidget *dialog = gtk_file_chooser_dialog_new (_("Open File"), editor->window, action, _("Cancel"), GTK_RESPONSE_CANCEL, _("Open"), GTK_RESPONSE_ACCEPT, NULL);
 
     gint res = gtk_dialog_run (GTK_DIALOG (dialog));
     if (res == GTK_RESPONSE_ACCEPT)
@@ -54,7 +60,7 @@ void clear_editor(struct Editor * editor) {
 void open_folder_command(GtkWidget * self, struct Editor * editor) {
 
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
-    GtkWidget *dialog = gtk_file_chooser_dialog_new ("Open Folder", editor->window, action, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Open"), GTK_RESPONSE_ACCEPT, NULL);
+    GtkWidget *dialog = gtk_file_chooser_dialog_new (_("Open Folder"), editor->window, action, _("Cancel"), GTK_RESPONSE_CANCEL, _("Open"), GTK_RESPONSE_ACCEPT, NULL);
 
     gint res = gtk_dialog_run (GTK_DIALOG (dialog));
     if (res == GTK_RESPONSE_ACCEPT)
@@ -75,12 +81,12 @@ void open_folder_command(GtkWidget * self, struct Editor * editor) {
 
 }
 
-void new_command(void) {
+void new_command(struct Editor * editor) {
     GError *err = NULL;
     char* argv[] = {"/proc/self/exe", NULL};
     g_spawn_async(NULL, argv, NULL, G_SPAWN_DEFAULT, NULL, NULL, NULL, &err);
     if (err != NULL) {
-        fprintf (stderr, "Unable to new window: %s\n", err->message);
+        warning_popup(editor->window, err->message);
         g_error_free (err);
     }
 }
@@ -94,14 +100,14 @@ void new_file_command(GtkWidget * self, struct Editor * editor) {
 void new_folder_command(GtkWidget * self, struct Editor * editor) {
     if (!strlen(editor->dir))
         return;
-    GtkWidget *dialog = gtk_file_chooser_dialog_new ("Open Folder", editor->window, GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Open"), GTK_RESPONSE_ACCEPT, NULL);
+    GtkWidget *dialog = gtk_file_chooser_dialog_new (_("Open Folder"), editor->window, GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER, _("Cancel"), GTK_RESPONSE_CANCEL, _("Open"), GTK_RESPONSE_ACCEPT, NULL);
     gint res = gtk_dialog_run (GTK_DIALOG (dialog));
 
     if (res == GTK_RESPONSE_ACCEPT)
     {
         char * dirname = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
         if (strlen(editor->dir) + strlen(dirname) + 1 >= PATH_MAX || strlen(dirname) + 1 >= MAX_FILE) {
-            puts("The name of your directory is too long.");
+            warning_popup(editor->window, _("The name of your directory is too long."));
             free(dirname);
             gtk_widget_destroy(dialog);
             return;
@@ -118,9 +124,9 @@ void new_folder_command(GtkWidget * self, struct Editor * editor) {
     gtk_widget_destroy (dialog);
 }
 bool prompt_save(struct Editor * editor) {
-    GtkWidget * close = gtk_dialog_new_with_buttons("Titan", editor->current->window, GTK_DIALOG_MODAL, "No", 0, "Cancel", 1, "Yes", 2, NULL);
+    GtkWidget * close = gtk_dialog_new_with_buttons("Titan", editor->current->window, GTK_DIALOG_MODAL, _("No"), 0, _("Cancel"), 1, _("Yes"), 2, NULL);
     GtkWidget * content = gtk_dialog_get_content_area(GTK_DIALOG(close));
-    GtkWidget * message = gtk_label_new("Would you like to save?");
+    GtkWidget * message = gtk_label_new(_("Would you like to save?"));
 
     gtk_container_add(GTK_CONTAINER(content), message);
     gtk_widget_show_all(content);
@@ -204,7 +210,7 @@ void about_command(GtkWidget * self, struct Editor * editor) {
 
     gtk_about_dialog_set_license_type(about, GTK_LICENSE_GPL_3_0);
 
-    const char * comments = "Titan is a simple gtk3 code editor intended to be small and efficient. It aims to have a similar functionality to vs code and a smaller memory footprint.";
+    const char * comments = _("Titan is a simple gtk3 code editor intended to be small and efficient. It aims to have a similar functionality to vs code and a smaller memory footprint.");
     gtk_about_dialog_set_comments(about, comments);
 
     const char * website = "https://github.com/gholmann16/Titan";

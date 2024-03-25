@@ -1,7 +1,3 @@
-void new_file_command(GtkWidget * self, struct Editor * editor);
-
-void new_folder_command(GtkWidget * self, struct Editor * editor);
-
 void save_command(GtkWidget * self, struct Document ** document);
 
 void save_as_command(GtkWidget * self, struct Document ** document);
@@ -31,8 +27,6 @@ void search_next_command(GtkWidget * self, struct Document ** document);
 void replace_command(GtkWidget * self, struct Document ** document);
 
 void go_to_command(GtkWidget * self, struct Document ** document);
-
-void theme_command(GtkWidget * self, struct Editor * document);
 
 void font_command(GtkWidget * self, struct Document ** document);
 
