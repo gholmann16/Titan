@@ -24,6 +24,7 @@ int main(int argc, char * argv[]) {
     // Main view
 
     GtkWidget * tabs = gtk_notebook_new();
+    gtk_notebook_set_show_border(GTK_NOTEBOOK(tabs), FALSE);
     gtk_notebook_set_scrollable(GTK_NOTEBOOK(tabs), TRUE);
     g_signal_connect(tabs, "switch-page", G_CALLBACK(tab_selected), &editor);
 
@@ -39,7 +40,7 @@ int main(int argc, char * argv[]) {
         printf(_("Filelist updates could not be set up, exiting program"));
         return -1;
     }
-    struct inotify_event * event = malloc(THREAD_BUFFER);
+    editor.event = malloc(THREAD_BUFFER);
     pthread_create(&editor.tid, NULL, *thread, &editor);
 
     // Editor initilization
@@ -51,7 +52,6 @@ int main(int argc, char * argv[]) {
     editor.filesystem = NULL;
     editor.filecount = 0;
     editor.theme = theme;
-    editor.event = event;
     editor.fd = fd;
 
     // Menu setup
@@ -64,6 +64,7 @@ int main(int argc, char * argv[]) {
     // Boxes
     GtkWidget * box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     GtkWidget * sections = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 3);
+    GtkWidget * separator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
 
     // Explorer
     init_explorer(sections, &editor);
@@ -71,6 +72,7 @@ int main(int argc, char * argv[]) {
     // Add boxes together
     gtk_box_pack_start(GTK_BOX(box), bar, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), sections, 1, 1, 0);
+    gtk_box_pack_start(GTK_BOX(sections), separator, 0, 0, 0);
     gtk_box_pack_end(GTK_BOX(sections), tabs, 1, 1, 0);
 
     // Pack up app and run

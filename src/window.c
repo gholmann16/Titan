@@ -45,7 +45,6 @@ void clear_editor(struct Editor * editor) {
     editor->filecount = 0;
     editor->filesystem = NULL; //Necessary to avoid double free
 
-    gtk_widget_destroy(GTK_WIDGET(editor->tabs));
     for (int j = 0; j < editor->len; j++) {
         free(editor->pages[j]);
     }
@@ -63,15 +62,13 @@ void open_folder_command(GtkWidget * self, struct Editor * editor) {
     GtkWidget *dialog = gtk_file_chooser_dialog_new (_("Open Folder"), editor->window, action, _("Cancel"), GTK_RESPONSE_CANCEL, _("Open"), GTK_RESPONSE_ACCEPT, NULL);
 
     gint res = gtk_dialog_run (GTK_DIALOG (dialog));
-    if (res == GTK_RESPONSE_ACCEPT)
-    {
-        clear_editor(editor);
+    if (res == GTK_RESPONSE_ACCEPT) {
+        int page;
+        while((page = gtk_notebook_get_current_page(editor->tabs)) != -1) {
+            gtk_notebook_remove_page(editor->tabs, page);
+        }
 
-        editor->tabs = GTK_NOTEBOOK(gtk_notebook_new());
-        gtk_notebook_set_scrollable(GTK_NOTEBOOK(editor->tabs), TRUE);
-        g_signal_connect(editor->tabs, "switch-page", G_CALLBACK(tab_selected), editor);
-        gtk_widget_set_visible(GTK_WIDGET(editor->tabs), TRUE);
-        gtk_box_pack_end(GTK_BOX(editor->sections), GTK_WIDGET(editor->tabs), 1, 1, 0);
+        clear_editor(editor);
 
         char * dirname = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
         open_explorer(editor, dirname);
