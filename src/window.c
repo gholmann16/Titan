@@ -170,6 +170,10 @@ void exit_command(GtkWidget * self, struct Editor * editor) {
 
 }
 
+void terminal_command(GtkWidget * self, struct Editor * editor) {
+    gtk_widget_set_visible(GTK_WIDGET(editor->term), !gtk_widget_get_visible(GTK_WIDGET(editor->term)));
+}
+
 gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Editor * editor) {
     exit_command(self, editor);
     return TRUE;

@@ -20,6 +20,8 @@ bool prompt_save(struct Editor * editor);
 
 void exit_command(GtkWidget * self, struct Editor * editor);
 
+void terminal_command(GtkWidget * self, struct Editor * editor);
+
 gboolean delete_event(GtkWidget* self, GdkEvent* event, struct Editor * editor);
 
 void theme_command(GtkWidget * self, struct Editor * editor);

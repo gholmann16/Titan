@@ -4,8 +4,8 @@ OBJECTS := $(patsubst src/%.c, src/%.o, $(SOURCES))
 PSOURCES := $(wildcard po/*.po)
 MOBJECTS := $(patsubst po/%.po, po/%.mo, $(PSOURCES))
 
-CFLAGS := `pkg-config --cflags gtksourceview-4`
-LDLIBS := `pkg-config --libs gtksourceview-4`
+CFLAGS := `pkg-config --cflags gtksourceview-4 vte-2.91`
+LDLIBS := `pkg-config --libs gtksourceview-4 vte-2.91`
 
 debug: CFLAGS += -g -Og -Wall
 debug: titan

@@ -193,6 +193,11 @@ void init_menu(GtkWidget * bar, GtkAccelGroup * accel, struct Document ** docume
         count++;
     }
 
+    GtkWidget * terminal = gtk_menu_item_new_with_label(_("Terminal"));
+    gtk_widget_add_accelerator(terminal, "activate", accel, GDK_KEY_J, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    g_signal_connect(terminal, "activate", G_CALLBACK(terminal_command), editor);
+    gtk_menu_shell_append(GTK_MENU_SHELL(viewmenu), terminal);
+
     GtkWidget * options = gtk_menu_item_new_with_label(_("Options"));
     gtk_menu_shell_append(GTK_MENU_SHELL(bar), options);
 

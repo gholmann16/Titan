@@ -3,6 +3,7 @@
 
 #include <limits.h>
 #include <libintl.h>
+#include <vte/vte.h>
 #define _(STRING) gettext(STRING)
 typedef _Bool bool;
 
@@ -11,6 +12,7 @@ struct Editor {
     GtkNotebook * tabs;
     GtkWidget * expander;
     GtkWindow * window;
+    VteTerminal * term;
     char * dir;
     struct File ** filesystem;
     int filecount;
