@@ -60,7 +60,7 @@ struct File * get_file(GtkWidget * self, struct Editor * editor) {
             return editor->filesystem[i];
         }
     }
-    puts("Could not find a file we know exists");
+    puts(_("Could not find any files"));
     exit(-1);
 }
 
@@ -70,7 +70,7 @@ struct File * get_dir(int wd, struct Editor * editor) {
             return editor->filesystem[i];
         }
     }
-    puts("Inotify data corrupted");
+    puts(_("Inotify data corrupted"));
     exit(-1);
 }
 
@@ -191,9 +191,9 @@ void newpage(struct Editor * editor, char * path) {
         filename = strrchr(path, '/') + 1;
         strcpy(doc->name, filename);
 
-        struct File * datastruct;
+        struct File * datastruct = get_file_from_path(path, editor);
 
-        if (datastruct = get_file_from_path(path, editor)) {
+        if (datastruct) {
             doc->data = datastruct;
             if (path != datastruct->path)
                 free(path);
@@ -213,7 +213,7 @@ void newpage(struct Editor * editor, char * path) {
             puts(_("File system error, exiting."));
             exit(-1);
         }
-        content_type = g_content_type_guess(NULL, contents, len, NULL);
+        content_type = g_content_type_guess(NULL, (guchar *)contents, len, NULL);
         
         if(content_type != NULL && !strncmp(content_type, "image", 5)) 
             doc->type = Image;
@@ -236,7 +236,7 @@ void newpage(struct Editor * editor, char * path) {
             if (contents) {
                 gtk_text_buffer_set_text(doc->buffer, contents, len);
                 GtkSourceLanguageManager * manager = gtk_source_language_manager_get_default();
-                GtkSourceLanguage * language = gtk_source_language_manager_guess_language (manager, NULL, content_type);
+                GtkSourceLanguage * language = gtk_source_language_manager_guess_language (manager, doc->name, content_type);
                 gtk_source_buffer_set_language(GTK_SOURCE_BUFFER(doc->buffer), language);
             }
 
@@ -473,8 +473,8 @@ void add_file(struct Editor * editor) {
     created->path = path;
 
     if (editor->event->mask & IN_ISDIR) {
-        int wd;
-        if (wd = inotify_add_watch(editor->fd, dir->path, IN_MOVED_TO | IN_CREATE | IN_MOVED_FROM | IN_DELETE) == -1) {
+        int wd = inotify_add_watch(editor->fd, dir->path, IN_MOVED_TO | IN_CREATE | IN_MOVED_FROM | IN_DELETE);
+        if (wd == -1) {
             warning_popup(editor->window, _("Could not access directory"));
             free(path);
             free(created);

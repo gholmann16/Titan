@@ -202,7 +202,7 @@ void about_command(GtkWidget * self, struct Editor * editor) {
     gtk_about_dialog_set_program_name(about, "Titan");
     gtk_about_dialog_set_logo_icon_name(about, "titan");
 
-    const char * authors[] = {"Gabriel Holmann <gholmann16@gmail.com>", NULL};
+    const char * authors[] = {"Gabriel Holmann <gholmann16@satyrn.net>", NULL};
     gtk_about_dialog_set_authors(about, authors);
 
     gtk_about_dialog_set_license_type(about, GTK_LICENSE_GPL_3_0);

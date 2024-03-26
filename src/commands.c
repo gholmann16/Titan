@@ -92,7 +92,8 @@ void print_command(GtkWidget * self, struct Document ** document) {
     g_signal_connect (print, "draw_page", G_CALLBACK (draw_page), compositor);
     g_signal_connect (print, "paginate", G_CALLBACK (paginate), compositor);
 
-    GtkPrintOperationResult res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG, GTK_WINDOW ((*document)->window), NULL);
+    if (gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG, GTK_WINDOW ((*document)->window), NULL) == GTK_PRINT_OPERATION_RESULT_ERROR)
+        warning_popup((*document)->window, _("Failed to print page."));
 
     g_object_unref(print);
     g_object_unref(compositor);
@@ -106,7 +107,8 @@ void print_preview_command(GtkWidget * self, struct Document ** document) {
     g_signal_connect (print, "draw_page", G_CALLBACK (draw_page), compositor);
     g_signal_connect (print, "paginate", G_CALLBACK (paginate), compositor);
 
-    GtkPrintOperationResult res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PREVIEW, GTK_WINDOW ((*document)->window), NULL);
+    if (gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PREVIEW, GTK_WINDOW ((*document)->window), NULL) == GTK_PRINT_OPERATION_RESULT_ERROR)
+        warning_popup((*document)->window, _("Failed to preview page."));
 
     g_object_unref(print);
     g_object_unref(compositor);

@@ -96,13 +96,13 @@ int main(int argc, char * argv[]) {
     }
 
     gtk_main();
+    clear_editor(&editor);
     gtk_source_finalize();
 
-    clear_editor(&editor);
     free(editor.theme);
-    close(editor.fd);
     pthread_cancel(editor.tid);
+    close(editor.fd);
     free(editor.event);
-    
+
     return 0;
 }
