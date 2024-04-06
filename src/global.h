@@ -8,7 +8,6 @@
 typedef _Bool bool;
 
 struct Editor {
-    GtkWidget * sections;
     GtkNotebook * tabs;
     GtkWidget * expander;
     GtkWindow * window;

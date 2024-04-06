@@ -563,13 +563,11 @@ void open_explorer(struct Editor * editor, char * directory) {
 
 void init_explorer(GtkWidget * sections, struct Editor * editor) {
     GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
-    gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(scrolled), 200);
-    gtk_box_pack_start(GTK_BOX(sections), scrolled, 0, 1, 0);
+    gtk_paned_add1(GTK_PANED(sections), scrolled);
 
     GtkWidget * expander = gtk_expander_new(_("Code"));
     g_signal_connect(expander, "activate", G_CALLBACK(expanded), editor);
 
-    editor->sections = sections;
     editor->expander = expander;
     gtk_container_add(GTK_CONTAINER(scrolled), expander);
 }

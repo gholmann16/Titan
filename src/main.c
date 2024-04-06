@@ -64,18 +64,20 @@ int main(int argc, char * argv[]) {
 
     // Boxes
     GtkWidget * box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    GtkWidget * sections = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 3);
-    GtkWidget * separator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
+    GtkWidget * topbar = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
+    GtkWidget * sections = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
+    gtk_paned_set_position(GTK_PANED(sections), 192);
     GtkWidget * pane = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+    gtk_paned_set_position(GTK_PANED(pane), 576);
 
     // Explorer
     init_explorer(sections, &editor);
 
     // Add boxes together
     gtk_box_pack_start(GTK_BOX(box), bar, 0, 0, 0);
+    gtk_box_pack_start(GTK_BOX(box), topbar, 0, 0, 0);
     gtk_box_pack_start(GTK_BOX(box), sections, 1, 1, 0);
-    gtk_box_pack_start(GTK_BOX(sections), separator, 0, 0, 0);
-    gtk_box_pack_end(GTK_BOX(sections), pane, 1, 1, 0);
+    gtk_paned_add2(GTK_PANED(sections), pane);
     gtk_paned_add1(GTK_PANED(pane), tabs);
     gtk_paned_add2(GTK_PANED(pane), term);
 
